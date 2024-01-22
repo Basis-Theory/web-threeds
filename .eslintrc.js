@@ -12,7 +12,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
   plugins: ['@typescript-eslint', 'jest', 'prettier'],
-  extends: ['@basis-theory/eslint-config/typescript',
+  extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',

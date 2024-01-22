@@ -1,6 +1,3 @@
-const { pathsToModuleNameMapper } = require('ts-jest');
-const { compilerOptions } = require('./tsconfig');
-
 const common = {
   automock: false,
   coveragePathIgnorePatterns: ['test', 'dist'],
@@ -8,7 +5,9 @@ const common = {
   testPathIgnorePatterns: ['cypress'],
   roots: ['<rootDir>'],
   modulePaths: ['<rootDir>'],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths),
+  moduleNameMapper: {
+    '@/(.*)': '<rootDir>/src/$1',
+  },
 };
 
 module.exports = {
@@ -18,12 +17,8 @@ module.exports = {
       displayName: 'jsdom',
       testEnvironment: 'jsdom',
     },
-    {
-      ...common,
-      displayName: 'node',
-      testEnvironment: 'node',
-    },
   ],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   coverageThreshold: {
     global: {
       statements: 80,

@@ -1,12 +1,18 @@
 {
-    "jsc": {
-      "parser": {
-        "syntax": "typescript"
+  "jsc": {
+    "minify": {
+      "compress": {
+        "unused": true
       },
-      "target": "esnext"
+      "mangle": true
     },
-    "module": {
-      "type": "es6"
+    "parser": {
+      "syntax": "typescript"
     },
-    "sourceMaps": true
-  }
+    "target": "esnext"
+  },
+  "module": {
+    "type": "es6"
+  },
+  "sourceMaps": true
+}
