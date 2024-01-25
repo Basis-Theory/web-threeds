@@ -1,9 +1,9 @@
-import { logger } from '@/utils/logging';
+import { logger } from '../utils/logging';
 
 const isHTMLElement = (obj: unknown): obj is HTMLElement =>
   obj instanceof HTMLElement;
 
-const createIframe = (
+const createIframe = async (
   container: HTMLElement | null,
   name: string,
   id: string,
@@ -12,13 +12,16 @@ const createIframe = (
   onLoadCallback?: GlobalEventHandlers['onload']
 ) => {
   if (!container || !name || !id) {
-    const msg = `${container} ${name} ${id}`;
-    logger.log.error(`Not all required fields have a value`, new Error(msg));
+    const msg = `${container?.id} ${name} ${id}`;
+    await logger.log.error(
+      `Not all required fields have a value`,
+      new Error(msg)
+    );
     throw Error('Container must be a HTML element');
   }
 
   if (!isHTMLElement(container)) {
-    logger.log.error(
+    await logger.log.error(
       `Container must be a HTML element`,
       new Error(JSON.stringify(container))
     );

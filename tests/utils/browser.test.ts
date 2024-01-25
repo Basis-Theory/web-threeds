@@ -2,8 +2,7 @@ import {
   WindowSizeId,
   getDeviceInfo,
   getWindowSizeById,
-} from '@/utils/browser';
-import { logger } from '@/utils/logging';
+} from '../../src/utils/browser';
 
 const originalWindow = { ...global.window };
 
@@ -20,11 +19,9 @@ const mockWindow = {
   },
 };
 
-jest.mock('@/utils/logging', () => ({
+jest.mock('../../src/utils/logging', () => ({
   logger: {
-    ...logger,
     log: {
-      ...logger.log,
       error: jest.fn(),
     },
   },
@@ -37,6 +34,10 @@ afterAll(() => {
 });
 
 describe('getDeviceInfo', () => {
+  beforeEach(() => {
+    jest.spyOn(Date.prototype, 'getTimezoneOffset').mockReturnValue(240);
+  });
+
   it('should return the correct device info', () => {
     Object.defineProperty(global, 'window', {
       value: {
@@ -55,24 +56,24 @@ describe('getDeviceInfo', () => {
       browserLanguage: 'en-US',
       browserScreenHeight: '1080',
       browserScreenWidth: '1920',
-      browserTZ: '360',
+      browserTZ: '240',
       browserUserAgent: 'Test User Agent',
     });
   });
 });
 
 describe('getWindowSizeById', () => {
-  it('should return the correct window size for a given id', () => {
-    const result = getWindowSizeById('03');
+  it('should return the correct window size for a given id', async () => {
+    const result = await getWindowSizeById('03');
 
     expect(result).toEqual(['500px', '600px']);
   });
 
-  it('should throw an error for an unsupported window size', () => {
-    const unsupportedSize = '06' as WindowSizeId; // casting to make it a valid id
+  it('should throw an error for an invalid window size id', async () => {
+    const invalidSizeId = '06' as WindowSizeId;
 
-    expect(() => {
-      getWindowSizeById(unsupportedSize);
-    }).toThrow(`Window size ${unsupportedSize} is not supported`);
+    await expect(getWindowSizeById(invalidSizeId)).rejects.toThrow(
+      `Window size ${invalidSizeId} is not supported`
+    );
   });
 });

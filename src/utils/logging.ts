@@ -34,8 +34,6 @@ export const logger = (() => {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-
-      await response.json();
     } catch {
       // Do nothing
     }
@@ -43,11 +41,11 @@ export const logger = (() => {
 
   return {
     log: {
-      error: async (message: string, error: Error, attributes?: AttributeMap) =>
+      error: (message: string, error: Error, attributes?: AttributeMap) =>
         log(message, 'error', error, attributes),
-      info: async (message: string, attributes?: AttributeMap) =>
+      info: (message: string, attributes?: AttributeMap) =>
         log(message, 'info', undefined, attributes),
-      warn: async (message: string, attributes?: AttributeMap) =>
+      warn: (message: string, attributes?: AttributeMap) =>
         log(message, 'warn', undefined, attributes),
     },
   };

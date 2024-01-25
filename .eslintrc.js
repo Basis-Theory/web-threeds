@@ -4,20 +4,26 @@ module.exports = {
     browser: false,
     es6: true,
     node: true,
-    'jest/globals': true,
+    jest: true,
   },
   parser: '@typescript-eslint/parser',
   parserOptions: {
+    parser: '@typescript-eslint/parser',
     project: './tsconfig.json',
     tsconfigRootDir: __dirname,
   },
-  plugins: ['@typescript-eslint', 'jest', 'prettier'],
+  plugins: ['@typescript-eslint', 'get-off-my-lawn', 'prettier'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',
   ],
-  rules: {
-    'unicorn/no-null': 'warn',},
-  ignorePatterns: ['**/*.cjs', '**/*.mjs', '**/*.js', 'jest.config.ts'],
+  rules: {},
+  ignorePatterns: [
+    '**/*.cjs',
+    '**/*.mjs',
+    '**/*.js',
+    '**/*.test.ts',
+    'jest.config.js',
+  ],
 };

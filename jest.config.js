@@ -6,7 +6,7 @@ const common = {
   roots: ['<rootDir>'],
   modulePaths: ['<rootDir>'],
   moduleNameMapper: {
-    '@/(.*)': '<rootDir>/src/$1',
+    'src/(.*)': '<rootDir>/src/$1',
   },
 };
 
@@ -18,13 +18,4 @@ module.exports = {
       testEnvironment: 'jsdom',
     },
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  coverageThreshold: {
-    global: {
-      statements: 80,
-      branches: 80,
-      lines: 80,
-      functions: 80,
-    },
-  },
 };

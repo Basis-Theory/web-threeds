@@ -1,0 +1,45 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node: [ '20.x' ]
+        os: [ ubuntu-latest ]
+    env:
+      HUSKY: 0 # disables husky hooks
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install deps (with cache)
+        uses: bahmutov/npm-install@v1
+
+
+      - id: read-package-json
+        name: Read package.json
+        run: |
+          content=`cat package.json`
+          content="${content//'%'/'%25'}"
+          content="${content//$'\n'/'%0A'}"
+          content="${content//$'\r'/'%0D'}"
+          echo "::set-output name=packageJson::$content"got
+
+      - name: Verify
+        run: make verify
+        env:
+          SKIP_INSTALL: 1 # install with cache was done already

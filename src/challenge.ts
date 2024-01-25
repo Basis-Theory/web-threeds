@@ -1,5 +1,5 @@
-export const startChallenge = (apiKey: string) => async () => {
-  console.log('TODO: DO THE THING');
+export const startChallenge = (apiKey: string) => () => {
+  console.log('TODO: DO THE THING', apiKey);
   /*
 interface ThreeDSChallengeRequest {
   messageType: string; // Must always be set to "CReq"

@@ -10,3 +10,4 @@ cypress/downloads
 .idea
 .env
 .vscode/
+.parcel-cache/

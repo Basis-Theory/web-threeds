@@ -4,7 +4,7 @@ import {
   createIframe,
   createIframeContainer,
   createInput,
-} from '@/utils/dom';
+} from '../../src/utils/dom';
 
 describe('Utility Functions', () => {
   beforeEach(() => {

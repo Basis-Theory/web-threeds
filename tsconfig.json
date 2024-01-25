@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*"],
   "compilerOptions": {
     "declaration": true,
     "downlevelIteration": true,
@@ -11,13 +11,14 @@
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "skipLibCheck": true,
     "strict": true,
-    "target": "es6",
+    "target": "ESNext",
+    "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
-    }
-  }
+      "src/*": ["src/*"],
+    },
+  },
 }

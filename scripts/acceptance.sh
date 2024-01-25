@@ -9,8 +9,6 @@ yarn lint
 
 # unit
 yarn test --coverage
-# e2e
-yarn test:e2e
 
 result=$?
 

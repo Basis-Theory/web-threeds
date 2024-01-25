@@ -1,6 +1,6 @@
-import { METHOD_REQUEST } from '@/constants';
-import { createSession } from '@/session';
-import { createIframeContainer } from '@/utils/dom';
+import { METHOD_REQUEST } from '../src/constants';
+import { createSession } from '../src/session';
+import { createIframeContainer } from '../src/utils/dom';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
 

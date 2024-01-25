@@ -1,13 +1,12 @@
-import { BASE_URL, BT_API_KEY_HEADER_NAME, METHOD_REQUEST } from '@/constants';
-import { getDeviceInfo } from '@/utils/browser';
+import { BASE_URL, BT_API_KEY_HEADER_NAME, METHOD_REQUEST } from './constants';
+import { getDeviceInfo } from './utils/browser';
 import {
   createIframe,
   createForm,
   createInput,
   createElement,
-} from '@/utils/dom';
-import { encode } from '@/utils/encoding';
-
+} from './utils/dom';
+import { encode } from './utils/encoding';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -21,7 +20,7 @@ const sendMethodRequest = async (
   threeDSMethodURL: string,
   threeDSServerTransID: string,
   methodNotificationURL?: string
-): Promise<any> => {
+): Promise<unknown> => {
   const threeDSMethodDataBase64 = encode({
     threeDSServerTransID,
     threeDSMethodNotificationURL: methodNotificationURL,
@@ -29,7 +28,7 @@ const sendMethodRequest = async (
 
   const container = document.getElementById(METHOD_REQUEST.FRAME_CONTAINER_ID);
 
-  const iframe = createIframe(
+  const iframe = await createIframe(
     container,
     METHOD_REQUEST.IFRAME_NAME,
     METHOD_REQUEST.IFRAME_NAME,
@@ -43,29 +42,24 @@ const sendMethodRequest = async (
     createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
   );
 
-  const response = await new Promise(async (resolve, reject) => {
-    form.addEventListener('submit', async (e) => {
+  const response = await new Promise((resolve, reject) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-
-      try {
-        const fetchResponse = await fetch(threeDSMethodURL, {
-          method: 'POST',
-          body: new FormData(form),
-        });
-
-        if (!fetchResponse.ok) {
-          throw new Error(`HTTP error! Status: ${fetchResponse.status}`);
-        }
-
-        const responseBody = await fetchResponse.json();
-        resolve(responseBody);
-      } catch (error) {
-        reject(error);
-      }
+      fetch(threeDSMethodURL, {
+        method: 'POST',
+        body: new FormData(form),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            reject(new Error(`HTTP error! Status: ${response.status}`));
+          } else {
+            resolve(response.json());
+          }
+        })
+        .catch((error) => reject(error));
     });
 
     iframe.appendChild(createElement('html', createElement('body', form)));
-
     form.submit();
   });
 
@@ -91,7 +85,7 @@ const makeSessionRequest = async ({
 
   if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-  const data = await response.json();
+  const data = (await response.json()) as Create3dsSessionResponse;
 
   return data;
 };
