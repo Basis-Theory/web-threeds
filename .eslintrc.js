@@ -18,7 +18,9 @@ module.exports = {
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',
   ],
-  rules: {},
+  rules: {
+    '@typescript-eslint/no-floating-promises': 'warn',
+  },
   ignorePatterns: [
     '**/*.cjs',
     '**/*.mjs',

@@ -2,7 +2,7 @@ import {
   WindowSizeId,
   getDeviceInfo,
   getWindowSizeById,
-} from '../../src/utils/browser';
+} from '~src/utils/browser';
 
 const originalWindow = { ...global.window };
 
@@ -19,7 +19,7 @@ const mockWindow = {
   },
 };
 
-jest.mock('../../src/utils/logging', () => ({
+jest.mock('~src/utils/logging', () => ({
   logger: {
     log: {
       error: jest.fn(),

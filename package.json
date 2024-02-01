@@ -5,8 +5,9 @@
   "repository": "https://github.com/Basis-Theory/3ds-web",
   "license": "Apache-2.0",
   "author": "Basis Theory <support@basistheory.com>",
-  "source": "./src/index.ts",
-  "main": "dist/index.cjs",
+  "source": "src/index.ts",
+  "module": "dist/module.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -68,13 +69,12 @@
   },
   "targets": {
     "main": {
-      "isLibrary": true,
-      "optimize": true,
-      "sourceMap": false
+      "isLibrary": true
     },
-    "types": {
-      "sourceMap": false
-    }
+    "module": {
+      "isLibrary": true
+    },
+    "types": {}
   },
   "alias": {},
   "resolutions": {},

@@ -1,9 +1,9 @@
-import { logger } from '../utils/logging';
+import { logger } from './logging';
 
 const isHTMLElement = (obj: unknown): obj is HTMLElement =>
-  obj instanceof HTMLElement;
+  !obj || obj instanceof HTMLElement;
 
-const createIframe = async (
+const createIframe = (
   container: HTMLElement | null,
   name: string,
   id: string,
@@ -11,21 +11,12 @@ const createIframe = async (
   height = '0',
   onLoadCallback?: GlobalEventHandlers['onload']
 ) => {
-  if (!container || !name || !id) {
-    const msg = `${container?.id} ${name} ${id}`;
-    await logger.log.error(
-      `Not all required fields have a value`,
-      new Error(msg)
-    );
-    throw Error('Container must be a HTML element');
-  }
+  if (!isHTMLElement(container) || !name || !id) {
+    const msg = `Unable to create iframe. Container must be a HTML element ${JSON.stringify(container)} ${name} ${id}`;
 
-  if (!isHTMLElement(container)) {
-    await logger.log.error(
-      `Container must be a HTML element`,
-      new Error(JSON.stringify(container))
-    );
-    throw Error('Container must be a HTML element');
+    logger.log.error(`Unable to create iframe`, new Error());
+
+    throw Error(msg);
   }
 
   const iframe = document.createElement('iframe');
@@ -45,9 +36,14 @@ const createIframe = async (
   return iframe;
 };
 
-const createForm = (formName: string, formTarget: string) => {
+const createForm = (
+  formName: string,
+  formAction: string,
+  formTarget: string
+) => {
   const form = document.createElement('form');
   form.name = formName;
+  form.action = formAction;
   form.method = 'POST';
   form.target = formTarget;
 

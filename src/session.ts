@@ -1,12 +1,20 @@
-import { BASE_URL, BT_API_KEY_HEADER_NAME, METHOD_REQUEST } from './constants';
-import { getDeviceInfo } from './utils/browser';
+import { METHOD_REQUEST } from '~src/constants';
+import { getDeviceInfo } from '~src/utils/browser';
 import {
   createIframe,
   createForm,
   createInput,
   createElement,
-} from './utils/dom';
-import { encode } from './utils/encoding';
+} from '~src/utils/dom';
+import { encode } from '~src/utils/encoding';
+import { http } from '~src/utils/http';
+import {
+  MethodNotification,
+  MethodNotificationTimedOut,
+  isMethodCompleted,
+  isMethodTimedOut,
+} from '~src/utils/events';
+import { logger } from './utils/logging';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -14,13 +22,14 @@ export interface Create3dsSessionRequest {
 export interface Create3dsSessionResponse {
   id: string;
   methodUrl?: string;
+  methodNotificationUrl?: string;
 }
 
-const sendMethodRequest = async (
+const submitMethodRequest = (
   threeDSMethodURL: string,
   threeDSServerTransID: string,
   methodNotificationURL?: string
-): Promise<unknown> => {
+): void => {
   const threeDSMethodDataBase64 = encode({
     threeDSServerTransID,
     threeDSMethodNotificationURL: methodNotificationURL,
@@ -28,7 +37,7 @@ const sendMethodRequest = async (
 
   const container = document.getElementById(METHOD_REQUEST.FRAME_CONTAINER_ID);
 
-  const iframe = await createIframe(
+  const iframe = createIframe(
     container,
     METHOD_REQUEST.IFRAME_NAME,
     METHOD_REQUEST.IFRAME_NAME,
@@ -36,72 +45,96 @@ const sendMethodRequest = async (
     '0'
   );
 
-  const form = createForm(METHOD_REQUEST.FORM_NAME, iframe.name);
+  const form = createForm(
+    METHOD_REQUEST.FORM_NAME,
+    threeDSMethodURL,
+    iframe.name
+  );
 
   form.appendChild(
     createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
   );
 
-  const response = await new Promise((resolve, reject) => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      fetch(threeDSMethodURL, {
-        method: 'POST',
-        body: new FormData(form),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            reject(new Error(`HTTP error! Status: ${response.status}`));
-          } else {
-            resolve(response.json());
-          }
-        })
-        .catch((error) => reject(error));
-    });
+  iframe.appendChild(createElement('html', createElement('body', form)));
 
-    iframe.appendChild(createElement('html', createElement('body', form)));
-    form.submit();
-  });
-
-  return response;
+  form.submit();
 };
 
 const makeSessionRequest = async ({
   pan,
-  apiKey,
-}: Create3dsSessionRequest & {
-  apiKey: string;
-}): Promise<Create3dsSessionResponse> => {
+}: Create3dsSessionRequest): Promise<Create3dsSessionResponse> => {
   const deviceInfo = getDeviceInfo();
 
-  const response = await fetch(`${BASE_URL}/3ds/session`, {
-    method: 'POST',
-    body: JSON.stringify({ pan, device: 'browser', deviceInfo }),
-    headers: {
-      [BT_API_KEY_HEADER_NAME]: apiKey,
-      'Content-Type': 'application/json',
-    },
+  const response = await http.client('POST', `/create-session`, {
+    pan,
+    device: 'browser',
+    deviceInfo,
   });
 
-  if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+  if (!response.ok) {
+    const msg = `HTTP error! Status: ${response.status}`;
 
-  const data = (await response.json()) as Create3dsSessionResponse;
+    logger.log.error(msg);
 
-  return data;
+    throw new Error(msg);
+  }
+
+  const session = (await response.json()) as Create3dsSessionResponse;
+
+  logger.log.info(`3DS session response received with ID ${session.id}`);
+
+  setTimeout(() => {
+    const msg = {
+      methodTimedOut: true,
+      id: session.id,
+    };
+
+    window.postMessage(msg, '*');
+  }, 10000);
+
+  if (session.methodUrl) {
+    submitMethodRequest(
+      session.methodUrl,
+      session.id,
+      session.methodNotificationUrl
+    );
+  }
+
+  return session;
 };
 
-export const createSession =
-  (apiKey: string) =>
-  async ({ pan }: Create3dsSessionRequest) => {
-    const session = await makeSessionRequest({ pan, apiKey });
+export const createSession = async ({ pan }: Create3dsSessionRequest) =>
+  new Promise((resolve, reject) => {
+    const handleMessage = (
+      event: MessageEvent<MethodNotification | MethodNotificationTimedOut>
+    ) => {
+      if (isMethodCompleted(event.data)) {
+        window.removeEventListener('message', handleMessage);
 
-    if (session.methodUrl) {
-      return await sendMethodRequest(
-        session.methodUrl,
-        session.id,
-        `${BASE_URL}/3ds/session/${session.id}/method'`
-      );
-    }
+        const id = event.data.id;
 
-    return undefined;
-  };
+        logger.log.info(`Method Notification Received for session: ${id}`);
+
+        resolve({ id });
+      } else if (isMethodTimedOut(event.data)) {
+        window.removeEventListener('message', handleMessage);
+
+        const id = event.data.id;
+
+        logger.log.info(`Method Request timed out for session: ${id}`);
+
+        resolve({ id });
+      } else if (event.isTrusted == false) {
+        // discard untrusted events
+      } else {
+        reject('Something happened, please try again.');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    makeSessionRequest({ pan }).catch((error) => {
+      window.removeEventListener('message', handleMessage);
+      reject(error);
+    });
+  });

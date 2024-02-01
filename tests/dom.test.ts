@@ -4,7 +4,7 @@ import {
   createIframe,
   createIframeContainer,
   createInput,
-} from '../../src/utils/dom';
+} from '~src/utils/dom';
 
 describe('Utility Functions', () => {
   beforeEach(() => {
@@ -20,13 +20,17 @@ describe('Utility Functions', () => {
   });
 
   test('createForm should create a form element', () => {
-    const form = createForm('testForm', '_blank');
+    const form = createForm(
+      'testForm',
+      `${window.location.href}submit`,
+      '_blank'
+    );
 
     window.location.host;
 
     expect(form.tagName).toBe('FORM');
     expect(form.name).toBe('testForm');
-    // expect(form.action).toBe(`${window.location.href}submit`);
+    expect(form.action).toBe(`${window.location.href}submit`);
     expect(form.method).toBe('post');
     expect(form.target).toBe('_blank');
   });

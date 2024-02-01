@@ -41,7 +41,7 @@ export const logger = (() => {
 
   return {
     log: {
-      error: (message: string, error: Error, attributes?: AttributeMap) =>
+      error: (message: string, error?: Error, attributes?: AttributeMap) =>
         log(message, 'error', error, attributes),
       info: (message: string, attributes?: AttributeMap) =>
         log(message, 'info', undefined, attributes),

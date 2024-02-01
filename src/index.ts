@@ -1,14 +1,15 @@
-import { CHALLENGE_REQUEST, METHOD_REQUEST } from './constants';
-import { createSession } from './session';
-import { startChallenge } from './challenge';
-import { createIframeContainer } from './utils/dom';
-import { logger } from './utils/logging';
+import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
+import { createSession } from '~src/session';
+import { startChallenge } from '~src/challenge';
+import { createIframeContainer } from '~src/utils/dom';
+import { logger } from '~src/utils/logging';
+import { http } from '~src/utils/http';
 
 type ConfigOptions = {
   apiBaseUrl?: string;
 };
 
-const BasisTheory3ds = (async () => {
+const BasisTheory3ds = (() => {
   // any pre-init tasks go here
 
   // TODO applyInitialConfig()
@@ -18,19 +19,17 @@ const BasisTheory3ds = (async () => {
     createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
     createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
   } catch (error) {
-    await logger.log.error('Unable to create iframe container', error as Error);
+    logger.log.error('Unable to create iframe container', error as Error);
   }
 
   return (apiKey: string, configOptions?: ConfigOptions) => {
-    if (!apiKey) throw new Error('Missing API KEY');
+    http.init(apiKey);
+
     if (configOptions) {
       // TODO: applyConfigOverrides()
     }
 
-    return {
-      createSession: createSession(apiKey),
-      startChallenge: startChallenge(apiKey),
-    };
+    return { createSession, startChallenge: startChallenge(apiKey) };
   };
 })();
 

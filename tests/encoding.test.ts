@@ -1,9 +1,10 @@
-import { encode } from '../../src/utils/encoding';
+import { encode } from '~src/utils/encoding';
 
 describe('encode', () => {
   it('should encode an object to a base64 string without padding characters', () => {
     const inputObject = { name: 'John', age: 25, city: 'New York' };
-    const expectedResult = 'eyJuYW1lIjoiSm9obiIsImFnZSI6MjUsImNpdHkiOiJOZXcgWW9yayJ9';
+    const expectedResult =
+      'eyJuYW1lIjoiSm9obiIsImFnZSI6MjUsImNpdHkiOiJOZXcgWW9yayJ9';
 
     const result = encode(inputObject);
 
@@ -12,7 +13,8 @@ describe('encode', () => {
 
   it('should handle special characters in the object values', () => {
     const inputObject = { name: 'Alice & Bob', age: 30, city: 'San Francisco' };
-    const expectedResult = 'eyJuYW1lIjoiQWxpY2UgJiBCb2IiLCJhZ2UiOjMwLCJjaXR5IjoiU2FuIEZyYW5jaXNjbyJ9';
+    const expectedResult =
+      'eyJuYW1lIjoiQWxpY2UgJiBCb2IiLCJhZ2UiOjMwLCJjaXR5IjoiU2FuIEZyYW5jaXNjbyJ9';
 
     const result = encode(inputObject);
 
