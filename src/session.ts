@@ -9,10 +9,9 @@ import {
 import { encode } from '~src/utils/encoding';
 import { http } from '~src/utils/http';
 import {
-  MethodNotification,
-  MethodNotificationTimedOut,
-  isMethodCompleted,
-  isMethodTimedOut,
+  Notification,
+  NotificationType,
+  isNotification,
 } from '~src/utils/events';
 import { logger } from './utils/logging';
 export interface Create3dsSessionRequest {
@@ -65,7 +64,7 @@ const makeSessionRequest = async ({
 }: Create3dsSessionRequest): Promise<Create3dsSessionResponse> => {
   const deviceInfo = getDeviceInfo();
 
-  const response = await http.client('POST', `/create-session`, {
+  const response = await http.client('POST', `/session`, {
     pan,
     device: 'browser',
     deviceInfo,
@@ -84,9 +83,10 @@ const makeSessionRequest = async ({
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
   setTimeout(() => {
-    const msg = {
-      methodTimedOut: true,
+    const msg: Notification = {
+      isCompleted: false,
       id: session.id,
+      type: NotificationType.METHOD_TIME_OUT,
     };
 
     window.postMessage(msg, '*');
@@ -105,23 +105,15 @@ const makeSessionRequest = async ({
 
 export const createSession = async ({ pan }: Create3dsSessionRequest) =>
   new Promise((resolve, reject) => {
-    const handleMessage = (
-      event: MessageEvent<MethodNotification | MethodNotificationTimedOut>
-    ) => {
-      if (isMethodCompleted(event.data)) {
+    const handleMessage = (event: MessageEvent<Notification>) => {
+      if (isNotification(event.data)) {
         window.removeEventListener('message', handleMessage);
 
         const id = event.data.id;
 
-        logger.log.info(`Method Notification Received for session: ${id}`);
-
-        resolve({ id });
-      } else if (isMethodTimedOut(event.data)) {
-        window.removeEventListener('message', handleMessage);
-
-        const id = event.data.id;
-
-        logger.log.info(`Method Request timed out for session: ${id}`);
+        logger.log.info(
+          `${event.data.type} notification received for session: ${id}`
+        );
 
         resolve({ id });
       } else if (event.isTrusted == false) {

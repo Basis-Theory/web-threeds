@@ -68,7 +68,7 @@ describe('createSession', () => {
     // mock event from method notification
     window.dispatchEvent(
       new MessageEvent('message', {
-        data: { methodCompleted: true, id: 'mockSessionId' },
+        data: { isCompleted: true, id: 'mockSessionId', type: 'method' },
       })
     );
 

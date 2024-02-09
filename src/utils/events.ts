@@ -1,40 +1,21 @@
-import { isObject } from '.';
+export enum NotificationType {
+  METHOD = 'method',
+  CHALLENGE = 'challenge',
+  METHOD_TIME_OUT = 'methodTimeout',
+}
 
-type ChallengeNotification = {
-  challengeCompleted: boolean;
-  status: string;
-};
-
-export type MethodNotification = {
-  methodCompleted: boolean;
+export type Notification = {
+  isCompleted: boolean;
   id: string;
+  type: NotificationType;
 };
 
-export type MethodNotificationTimedOut = {
-  methodTimedOut: boolean;
-  id: string;
-};
-
-export const isMethodCompleted = (obj: unknown): obj is MethodNotification =>
-  isObject(obj) &&
-  'methodCompleted' in (obj as MethodNotification) &&
-  typeof (obj as MethodNotification).methodCompleted === 'boolean' &&
-  'id' in (obj as MethodNotification) &&
-  typeof (obj as MethodNotification).id === 'string';
-
-export const isMethodTimedOut = (
-  obj: unknown
-): obj is MethodNotificationTimedOut =>
-  isObject(obj) &&
-  'methodTimedOut' in (obj as MethodNotificationTimedOut) &&
-  typeof (obj as MethodNotificationTimedOut).methodTimedOut === 'boolean' &&
-  'id' in (obj as MethodNotificationTimedOut) &&
-  typeof (obj as MethodNotificationTimedOut).id === 'string';
-
-export const isChallengeCompleted = (
-  obj: unknown
-): obj is ChallengeNotification =>
-  'challengeCompleted' in (obj as ChallengeNotification) &&
-  typeof (obj as ChallengeNotification).challengeCompleted === 'boolean' &&
-  'status' in (obj as ChallengeNotification) &&
-  typeof (obj as ChallengeNotification).status === 'string';
+export const isNotification = (obj: unknown): obj is Notification =>
+  typeof obj === 'object' &&
+  obj !== null &&
+  'isCompleted' in obj &&
+  typeof obj.isCompleted === 'boolean' &&
+  'id' in obj &&
+  typeof obj.id === 'string' &&
+  'type' in obj &&
+  Object.values(NotificationType).includes((obj as Notification).type);

@@ -15,7 +15,7 @@
   "scripts": {
     "build": "yarn generateTypes && parcel build",
     "build:dev": "yarn clean && yarn generateTypes && parcel build",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist .parcel-cache",
     "generateTypes": "tsc --emitDeclarationOnly",
     "lint-staged": "lint-staged",
     "lint:fix": "eslint ./src --ext .ts --fix",
@@ -69,12 +69,17 @@
   },
   "targets": {
     "main": {
-      "isLibrary": true
+      "isLibrary": true,
+      "sourceMap": false
     },
     "module": {
-      "isLibrary": true
+      "isLibrary": true,
+      "sourceMap": false
     },
-    "types": {}
+    "types": {
+      "isLibrary": true,
+      "sourceMap": false
+    }
   },
   "alias": {},
   "resolutions": {},
