@@ -3,17 +3,6 @@
 
 -
 
-<!-- Link to Linear Ticket Tracking if not automatically linked-->
-### Linear Link
-
--
-
-<!-- Describe impact to business or business use case -->
-## Business Impact
-
--
-
-<!-- Please describe in detail how teammates can test your changes. -->
 ## Testing required outside of automated testing?
 
 - [ ] Not Applicable

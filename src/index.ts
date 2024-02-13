@@ -6,6 +6,9 @@ import { logger } from '~src/utils/logging';
 import { http } from '~src/utils/http';
 
 type ConfigOptions = {
+  /**
+   * Allows customization of api base url
+   */
   apiBaseUrl?: string;
 };
 
@@ -23,7 +26,7 @@ const BasisTheory3ds = (() => {
   }
 
   return (apiKey: string, configOptions?: ConfigOptions) => {
-    http.init(apiKey);
+    http.init(apiKey, configOptions?.apiBaseUrl);
 
     if (configOptions) {
       // TODO: applyConfigOverrides()

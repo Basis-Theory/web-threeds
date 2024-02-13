@@ -1,20 +1,19 @@
 {
   "name": "@basis-theory/3ds-web",
-  "private": true,
   "version": "1.0.0",
   "repository": "https://github.com/Basis-Theory/3ds-web",
   "license": "Apache-2.0",
   "author": "Basis Theory <support@basistheory.com>",
   "source": "src/index.ts",
-  "module": "dist/module.js",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "module": "dist/module/module.js",
+  "main": "dist/main/index.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "yarn generateTypes && parcel build",
-    "build:dev": "yarn clean && yarn generateTypes && parcel build",
+    "build": "node ./scripts/prepare.js && yarn generateTypes && parcel build --no-cache",
+    "build:dev": "yarn clean && yarn generateTypes && parcel build && npx size-limit",
     "clean": "rimraf dist .parcel-cache",
     "generateTypes": "tsc --emitDeclarationOnly",
     "lint-staged": "lint-staged",
@@ -84,15 +83,19 @@
   "alias": {},
   "resolutions": {},
   "engines": {
-    "node": ">=10.12.0"
+    "node": ">=18.x"
   },
   "publishConfig": {
     "access": "public"
   },
   "size-limit": [
     {
-      "path": "dist/3ds-web.bundle.js",
-      "limit": "50 KB"
+      "path": "dist/main/index.js",
+      "limit": "5 KB"
+    },
+    {
+      "path": "dist/module/module.js",
+      "limit": "5 KB"
     }
   ]
 }

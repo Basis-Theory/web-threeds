@@ -14,4 +14,4 @@ export const CHALLENGE_REQUEST = {
 
 export const BT_API_KEY_HEADER_NAME = 'BT-API-KEY';
 
-export const BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL = 'https://api.basistheory.com';

@@ -10,7 +10,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
-    "outDir": "dist",
+    "outDir": "dist/types",
     "rootDir": "./src",
     "skipLibCheck": true,
     "strict": true,
