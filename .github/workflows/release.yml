@@ -14,7 +14,7 @@ jobs:
     env:
       CI: 1
       HUSKY: 0 # disables husky hooks
-      NPM_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -44,7 +44,6 @@ jobs:
         run: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
-          NPM_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
 
       - name: Slack Deploy / Release Alert
         uses: 8398a7/action-slack@v3
