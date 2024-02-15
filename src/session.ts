@@ -14,6 +14,7 @@ import {
   isNotification,
 } from '~src/utils/events';
 import { logger } from './utils/logging';
+import { camelToSnakeCase } from './utils/casing';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -67,7 +68,7 @@ const makeSessionRequest = async ({
   const response = await http.client('POST', `/sessions`, {
     pan,
     device: 'browser',
-    deviceInfo,
+    device_info: camelToSnakeCase(deviceInfo),
   });
 
   if (!response.ok) {
