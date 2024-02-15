@@ -1,3 +1,10 @@
+# [1.0.0-beta.3](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2024-02-15)
+
+
+### Features
+
+* convert values to snake_case before sending to api ([#12](https://github.com/Basis-Theory/3ds-web/issues/12)) ([bdf3415](https://github.com/Basis-Theory/3ds-web/commit/bdf34154211c5569145e95b727c7c2a2a2a08dc9))
+
 # [1.0.0-beta.2](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-02-15)
 
 
