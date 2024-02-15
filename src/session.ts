@@ -64,7 +64,7 @@ const makeSessionRequest = async ({
 }: Create3dsSessionRequest): Promise<Create3dsSessionResponse> => {
   const deviceInfo = getDeviceInfo();
 
-  const response = await http.client('POST', `/session`, {
+  const response = await http.client('POST', `/sessions`, {
     pan,
     device: 'browser',
     deviceInfo,
