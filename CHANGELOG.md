@@ -1,3 +1,10 @@
+# [1.0.0-beta.2](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-02-15)
+
+
+### Bug Fixes
+
+* change session endpoint to plural ([#11](https://github.com/Basis-Theory/3ds-web/issues/11)) ([b92f52a](https://github.com/Basis-Theory/3ds-web/commit/b92f52a0b1e66d87c07bb1370e0e5c439d78d617))
+
 # 1.0.0-beta.1 (2024-02-14)
 
 
