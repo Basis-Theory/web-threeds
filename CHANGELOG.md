@@ -1,3 +1,10 @@
+# [1.0.0-beta.4](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2024-02-16)
+
+
+### Bug Fixes
+
+* handle snake case in session response ([#13](https://github.com/Basis-Theory/3ds-web/issues/13)) ([da3112a](https://github.com/Basis-Theory/3ds-web/commit/da3112aa19b687ff41ead4c50409422caf3d3e5e))
+
 # [1.0.0-beta.3](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.2...v1.0.0-beta.3) (2024-02-15)
 
 
