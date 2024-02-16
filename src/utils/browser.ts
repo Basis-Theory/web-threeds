@@ -2,7 +2,7 @@ import { logger } from './logging';
 
 export type WindowSizeId = '01' | '02' | '03' | '04' | '05';
 
-interface ThreeDSDeviceInfo {
+export type ThreeDSDeviceInfo = {
   browserAcceptHeader?: string;
   browserColorDepth?: string;
   browserIp?: string;
@@ -13,7 +13,7 @@ interface ThreeDSDeviceInfo {
   browserScreenWidth?: string;
   browserTZ?: string;
   browserUserAgent?: string;
-}
+};
 
 const stringifyValue = <T>(val: T) => (val ? JSON.stringify(val) : 'test');
 

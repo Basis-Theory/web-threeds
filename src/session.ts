@@ -14,16 +14,16 @@ import {
   isNotification,
 } from '~src/utils/events';
 import { logger } from './utils/logging';
-import { camelToSnakeCase } from './utils/casing';
+import { camelCaseToSnakeCase, snakeCaseToCamelCase } from './utils/casing';
 export interface Create3dsSessionRequest {
   pan: string;
 }
 
-export interface Create3dsSessionResponse {
+export type Create3dsSessionResponse = {
   id: string;
-  methodUrl?: string;
-  methodNotificationUrl?: string;
-}
+  method_url?: string;
+  method_notification_url?: string;
+};
 
 const submitMethodRequest = (
   threeDSMethodURL: string,
@@ -65,11 +65,15 @@ const makeSessionRequest = async ({
 }: Create3dsSessionRequest): Promise<Create3dsSessionResponse> => {
   const deviceInfo = getDeviceInfo();
 
-  const response = await http.client('POST', `/sessions`, {
-    pan,
-    device: 'browser',
-    device_info: camelToSnakeCase(deviceInfo),
-  });
+  const response = await http.client(
+    'POST',
+    `/sessions`,
+    camelCaseToSnakeCase({
+      pan,
+      device: 'browser',
+      deviceInfo,
+    })
+  );
 
   if (!response.ok) {
     const msg = `HTTP error! Status: ${response.status}`;
@@ -79,7 +83,9 @@ const makeSessionRequest = async ({
     throw new Error(msg);
   }
 
-  const session = (await response.json()) as Create3dsSessionResponse;
+  const session = snakeCaseToCamelCase<Create3dsSessionResponse>(
+    (await response.json()) as Create3dsSessionResponse
+  );
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
