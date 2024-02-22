@@ -12,6 +12,10 @@ const queueMock = (responseData?: Record<string, unknown>) => {
   });
 };
 
+const resetMockQueue = () => {
+  fetchMocksQueue = [];
+};
+
 jest.mock('~src/utils/logging', () => ({
   logger: {
     log: {
@@ -35,6 +39,10 @@ describe('createSession', () => {
       }
       return Promise.resolve(fetchMocksQueue.shift());
     });
+  });
+
+  afterEach(() => {
+    resetMockQueue();
   });
 
   afterAll(() => {

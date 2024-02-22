@@ -1,6 +1,12 @@
 import { logger } from './logging';
 
-export type WindowSizeId = '01' | '02' | '03' | '04' | '05';
+export enum WindowSizeId {
+  ONE = '01',
+  TWO = '02',
+  THREE = '03',
+  FOUR = '04',
+  FIVE = '05',
+}
 
 export type ThreeDSDeviceInfo = {
   browserAcceptHeader?: string;
@@ -28,18 +34,19 @@ export const getDeviceInfo = (): ThreeDSDeviceInfo => ({
   browserUserAgent: window.navigator.userAgent,
 });
 
-export const getWindowSizeById = async (
-  challengeWindowSize: WindowSizeId = '05'
-): Promise<[string, string]> => {
+export const getWindowSizeById = (
+  challengeWindowSize: WindowSizeId = WindowSizeId.FIVE
+) => {
   const sizeMap: Record<WindowSizeId, [string, string]> = {
-    '01': ['250px', '400px'],
-    '02': ['390px', '400px'],
-    '03': ['500px', '600px'],
-    '04': ['600px', '400px'],
-    '05': ['100%', '100%'],
+    [WindowSizeId.ONE]: ['250px', '400px'],
+    [WindowSizeId.TWO]: ['390px', '400px'],
+    [WindowSizeId.THREE]: ['500px', '600px'],
+    [WindowSizeId.FOUR]: ['600px', '400px'],
+    [WindowSizeId.FIVE]: ['100%', '100%'],
   };
 
   const size = sizeMap[challengeWindowSize];
+
   if (size) {
     return size;
   } else {
@@ -47,7 +54,7 @@ export const getWindowSizeById = async (
       `Window size ${challengeWindowSize} is not supported`
     );
 
-    await logger.log.error('Unsupported window size', err);
+    logger.log.error('Unsupported window size', err);
 
     throw err;
   }

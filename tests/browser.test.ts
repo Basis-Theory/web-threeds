@@ -63,8 +63,8 @@ describe('getDeviceInfo', () => {
 });
 
 describe('getWindowSizeById', () => {
-  it('should return the correct window size for a given id', async () => {
-    const result = await getWindowSizeById('03');
+  it('should return the correct window size for a given id', () => {
+    const result = getWindowSizeById(WindowSizeId.THREE);
 
     expect(result).toEqual(['500px', '600px']);
   });
@@ -72,7 +72,7 @@ describe('getWindowSizeById', () => {
   it('should throw an error for an invalid window size id', async () => {
     const invalidSizeId = '06' as WindowSizeId;
 
-    await expect(getWindowSizeById(invalidSizeId)).rejects.toThrow(
+    expect(() => getWindowSizeById(invalidSizeId)).toThrow(
       `Window size ${invalidSizeId} is not supported`
     );
   });

@@ -13,11 +13,6 @@ type ConfigOptions = {
 };
 
 const BasisTheory3ds = (() => {
-  // any pre-init tasks go here
-
-  // TODO applyInitialConfig()
-
-  // Create iframe containers before anything else
   try {
     createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
     createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
@@ -28,11 +23,7 @@ const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     http.init(apiKey, configOptions?.apiBaseUrl);
 
-    if (configOptions) {
-      // TODO: applyConfigOverrides()
-    }
-
-    return { createSession, startChallenge: startChallenge(apiKey) };
+    return { createSession, startChallenge };
   };
 })();
 

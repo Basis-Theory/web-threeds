@@ -2,12 +2,17 @@ export enum NotificationType {
   METHOD = 'method',
   CHALLENGE = 'challenge',
   METHOD_TIME_OUT = 'methodTimeout',
+  ERROR = 'error',
 }
 
 export type Notification = {
+  // whether the event was completed succesfully
   isCompleted: boolean;
+  // id associated to the event
   id: string;
   type: NotificationType;
+  // additional event info (detailed errors)
+  details?: string;
 };
 
 export const isNotification = (obj: unknown): obj is Notification =>

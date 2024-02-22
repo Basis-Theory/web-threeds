@@ -6,15 +6,12 @@ import {
   createInput,
   createElement,
 } from '~src/utils/dom';
+import { camelCaseToSnakeCase, snakeCaseToCamelCase } from '~src/utils/casing';
 import { encode } from '~src/utils/encoding';
+import { handleThreeDSRequest } from './handlers/handleThreeDSRequest';
 import { http } from '~src/utils/http';
-import {
-  Notification,
-  NotificationType,
-  isNotification,
-} from '~src/utils/events';
-import { logger } from './utils/logging';
-import { camelCaseToSnakeCase, snakeCaseToCamelCase } from './utils/casing';
+import { logger } from '~src/utils/logging';
+import { Notification, NotificationType } from '~src/utils/events';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -110,30 +107,7 @@ const makeSessionRequest = async ({
   return session;
 };
 
-export const createSession = async ({ pan }: Create3dsSessionRequest) =>
-  new Promise((resolve, reject) => {
-    const handleMessage = (event: MessageEvent<Notification>) => {
-      if (isNotification(event.data)) {
-        window.removeEventListener('message', handleMessage);
-
-        const id = event.data.id;
-
-        logger.log.info(
-          `${event.data.type} notification received for session: ${id}`
-        );
-
-        resolve({ id });
-      } else if (event.isTrusted == false) {
-        // discard untrusted events
-      } else {
-        reject('Something happened, please try again.');
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    makeSessionRequest({ pan }).catch((error) => {
-      window.removeEventListener('message', handleMessage);
-      reject(error);
-    });
-  });
+export const createSession = handleThreeDSRequest<
+  Create3dsSessionRequest,
+  Create3dsSessionResponse
+>(makeSessionRequest);
