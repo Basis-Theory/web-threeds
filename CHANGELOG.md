@@ -1,3 +1,10 @@
+# [1.0.0-beta.5](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2024-02-22)
+
+
+### Features
+
+* adds start challenge ([#14](https://github.com/Basis-Theory/3ds-web/issues/14)) ([0c31e16](https://github.com/Basis-Theory/3ds-web/commit/0c31e167d89445594cbd0028928b80b8053e15d4))
+
 # [1.0.0-beta.4](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.3...v1.0.0-beta.4) (2024-02-16)
 
 
