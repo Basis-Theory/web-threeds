@@ -1,3 +1,10 @@
+# [1.0.0-beta.7](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2024-03-06)
+
+
+### Bug Fixes
+
+* round down browser color depth to valid value ([#17](https://github.com/Basis-Theory/3ds-web/issues/17)) ([3eeec87](https://github.com/Basis-Theory/3ds-web/commit/3eeec87241fa95cf4bdfbe3a3c35c2695d023638))
+
 # [1.0.0-beta.6](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.5...v1.0.0-beta.6) (2024-03-04)
 
 # [1.0.0-beta.5](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.4...v1.0.0-beta.5) (2024-02-22)
