@@ -29,6 +29,8 @@ describe('createSession', () => {
   beforeAll(() => {
     jest.useFakeTimers();
 
+    jest.spyOn(window, 'setTimeout');
+
     // Initialize http client
     http.init('test');
 
@@ -43,6 +45,7 @@ describe('createSession', () => {
 
   afterEach(() => {
     resetMockQueue();
+    jest.clearAllMocks();
   });
 
   afterAll(() => {
@@ -50,6 +53,13 @@ describe('createSession', () => {
     fetchMocksQueue = [];
     jest.useRealTimers();
   });
+
+  function resolvePendingPromises() {
+    jest.runAllTimersAsync();
+    // Wait for promises running in the non-async timer callback to complete.
+    // From https://stackoverflow.com/a/58716087/308237
+    return new Promise((fn, ...args) => global.setTimeout(fn, 0, ...args));
+  }
 
   it('should create a session and send method request if version methodUrl is available', async () => {
     // avoid https://github.com/jsdom/jsdom/issues/1937
@@ -82,6 +92,7 @@ describe('createSession', () => {
 
     const res = await response;
 
+    expect(setTimeout).not.toHaveBeenCalled();
     expect(res).toStrictEqual(createSessionResponse);
   });
 
@@ -108,11 +119,12 @@ describe('createSession', () => {
 
     const res = createSession({ pan });
 
-    jest.advanceTimersByTime(10000);
+    await resolvePendingPromises();
 
     const response = await res;
 
     expect(response).toStrictEqual(createSessionResponse);
+    expect(setTimeout).toHaveBeenCalled();
   }, 10001);
 
   it('should handle the case where version methodUrl is not available', async () => {
@@ -136,5 +148,6 @@ describe('createSession', () => {
     );
 
     expect(response).rejects.toEqual('Something happened, please try again.');
+    expect(setTimeout).not.toHaveBeenCalled();
   });
 });

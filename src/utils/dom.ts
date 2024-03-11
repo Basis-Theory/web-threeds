@@ -70,10 +70,14 @@ const createIframeContainer = (id: string) => {
   document.body.appendChild(container);
 };
 
+const removeIframeContainer = (ids?: string[]) =>
+  ids?.map((id) => document.getElementById(id)?.remove());
+
 export {
   createElement,
   createForm,
   createIframe,
   createIframeContainer,
   createInput,
+  removeIframeContainer,
 };

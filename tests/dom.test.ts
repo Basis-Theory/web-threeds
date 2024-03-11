@@ -1,10 +1,13 @@
+import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 import {
   createElement,
   createForm,
   createIframe,
   createIframeContainer,
   createInput,
+  removeIframeContainer,
 } from '~src/utils/dom';
+import { NotificationType } from '~src/utils/events';
 
 describe('Utility Functions', () => {
   beforeEach(() => {
@@ -59,5 +62,38 @@ describe('Utility Functions', () => {
     expect(input.tagName).toBe('INPUT');
     expect(input.name).toBe('inputName');
     expect(input.value).toBe('inputValue');
+  });
+});
+
+describe('iframe container creation and removal', () => {
+  test.each([
+    [
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.METHOD}`,
+      METHOD_REQUEST.FRAME_CONTAINER_ID,
+    ],
+    [
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.METHOD_TIME_OUT}`,
+      METHOD_REQUEST.FRAME_CONTAINER_ID,
+    ],
+    [
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.ERROR}`,
+      METHOD_REQUEST.FRAME_CONTAINER_ID,
+    ],
+    [
+      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.CHALLENGE}`,
+      CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
+    ],
+    [
+      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.ERROR}`,
+      CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
+    ],
+  ])('%s', (_, frameId) => {
+    createIframeContainer(frameId);
+
+    expect(document.getElementById(frameId)).not.toBeNull();
+
+    removeIframeContainer([frameId]);
+
+    expect(document.getElementById(frameId)).toBeNull();
   });
 });

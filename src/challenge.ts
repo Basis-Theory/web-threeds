@@ -59,7 +59,7 @@ const submitChallengeRequest = (
   creq: AcsThreeDSChallengeRequest,
   session: Record<string, unknown> = {}
 ) => {
-  const frameContainer = document.getElementById(
+  const container = document.getElementById(
     CHALLENGE_REQUEST.FRAME_CONTAINER_ID
   );
 
@@ -72,7 +72,7 @@ const submitChallengeRequest = (
   const html = document.createElement('html');
   const body = document.createElement('body');
   const challengeIframe = createIframe(
-    frameContainer,
+    container,
     challengeIframeName,
     challengeIframeName,
     windowSize[0],

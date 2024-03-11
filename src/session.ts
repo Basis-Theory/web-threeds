@@ -11,7 +11,7 @@ import { encode } from '~src/utils/encoding';
 import { handleThreeDSRequest } from './handlers/handleThreeDSRequest';
 import { http } from '~src/utils/http';
 import { logger } from '~src/utils/logging';
-import { Notification, NotificationType } from '~src/utils/events';
+import { NotificationType, notify } from '~src/utils/events';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -86,15 +86,11 @@ const makeSessionRequest = async ({
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
-  setTimeout(() => {
-    const msg: Notification = {
-      isCompleted: false,
-      id: session.id,
-      type: NotificationType.METHOD_TIME_OUT,
-    };
-
-    window.postMessage(msg, '*');
-  }, 10000);
+  notify({
+    isCompleted: false,
+    id: session.id,
+    type: NotificationType.START_METHOD_TIME_OUT,
+  });
 
   if (session.methodUrl) {
     submitMethodRequest(
