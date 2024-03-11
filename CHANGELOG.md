@@ -1,3 +1,10 @@
+# [1.0.0-beta.8](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2024-03-11)
+
+
+### Bug Fixes
+
+* remove iframes and clear timeout after use ([#18](https://github.com/Basis-Theory/3ds-web/issues/18)) ([7e5423f](https://github.com/Basis-Theory/3ds-web/commit/7e5423f90b13be937cdf541c0ca4a612a1575569))
+
 # [1.0.0-beta.7](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.6...v1.0.0-beta.7) (2024-03-06)
 
 
