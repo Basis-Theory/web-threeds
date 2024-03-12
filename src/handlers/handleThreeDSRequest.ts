@@ -1,5 +1,5 @@
 import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
-import { removeIframeContainer } from '~src/utils/dom';
+import { removeIframe } from '~src/utils/dom';
 import {
   Notification,
   NotificationType,
@@ -9,14 +9,13 @@ import {
 import { logger } from '~src/utils/logging';
 
 const getIframeId = (type: NotificationType): string[] =>
-  type &&
-  {
-    [NotificationType.CHALLENGE]: CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
-    [NotificationType.METHOD]: METHOD_REQUEST.FRAME_CONTAINER_ID,
-    [NotificationType.METHOD_TIME_OUT]: METHOD_REQUEST.FRAME_CONTAINER_ID,
-    [NotificationType.ERROR]: `${METHOD_REQUEST.FRAME_CONTAINER_ID},${CHALLENGE_REQUEST.FRAME_CONTAINER_ID}`,
+  ({
+    [NotificationType.CHALLENGE]: CHALLENGE_REQUEST.IFRAME_NAME,
+    [NotificationType.METHOD]: METHOD_REQUEST.IFRAME_NAME,
+    [NotificationType.METHOD_TIME_OUT]: METHOD_REQUEST.IFRAME_NAME,
+    [NotificationType.ERROR]: `${METHOD_REQUEST.IFRAME_NAME},${CHALLENGE_REQUEST.IFRAME_NAME}`,
     [NotificationType.START_METHOD_TIME_OUT]: '',
-  }[type]?.split(',');
+  })[type]?.split(',');
 
 export const handleThreeDSRequest = <Payload, Response>(
   fn: (payload: Payload) => Promise<Response | Error>
@@ -56,13 +55,13 @@ export const handleThreeDSRequest = <Payload, Response>(
           );
 
           resolve(response);
-          removeIframeContainer(getIframeId(event.data?.type));
+          removeIframe(getIframeId(event.data?.type));
           clearTimeout(timeout);
         } else if (!event.isTrusted) {
           // discard untrusted events
         } else {
           reject('Something happened, please try again.');
-          removeIframeContainer(getIframeId(event.data?.type));
+          removeIframe(getIframeId(event.data?.type));
           clearTimeout(timeout);
         }
       };

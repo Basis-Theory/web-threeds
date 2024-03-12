@@ -5,7 +5,7 @@ import {
   createIframe,
   createIframeContainer,
   createInput,
-  removeIframeContainer,
+  removeIframe,
 } from '~src/utils/dom';
 import { NotificationType } from '~src/utils/events';
 
@@ -65,35 +65,48 @@ describe('Utility Functions', () => {
   });
 });
 
-describe('iframe container creation and removal', () => {
+describe('iframe container/iframe creation and removal', () => {
   test.each([
     [
-      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.METHOD}`,
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} content should be removed when notification is ${NotificationType.METHOD}`,
       METHOD_REQUEST.FRAME_CONTAINER_ID,
+      METHOD_REQUEST.IFRAME_NAME,
     ],
     [
-      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.METHOD_TIME_OUT}`,
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} content should be removed when notification is ${NotificationType.METHOD_TIME_OUT}`,
       METHOD_REQUEST.FRAME_CONTAINER_ID,
+      METHOD_REQUEST.IFRAME_NAME,
     ],
     [
-      `${METHOD_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.ERROR}`,
+      `${METHOD_REQUEST.FRAME_CONTAINER_ID} content should be removed when notification is ${NotificationType.ERROR}`,
       METHOD_REQUEST.FRAME_CONTAINER_ID,
+      METHOD_REQUEST.IFRAME_NAME,
     ],
     [
-      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.CHALLENGE}`,
+      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} content  should be removed when notification is ${NotificationType.CHALLENGE}`,
       CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
+      CHALLENGE_REQUEST.IFRAME_NAME,
     ],
     [
-      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} should be removed when notification is ${NotificationType.ERROR}`,
+      `${CHALLENGE_REQUEST.FRAME_CONTAINER_ID} content should be removed when notification is ${NotificationType.ERROR}`,
       CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
+      CHALLENGE_REQUEST.IFRAME_NAME,
     ],
-  ])('%s', (_, frameId) => {
-    createIframeContainer(frameId);
+  ])('%s', (_, iFrameContainerId, iFrameId) => {
+    createIframeContainer(iFrameContainerId);
 
-    expect(document.getElementById(frameId)).not.toBeNull();
+    const container = document.getElementById(iFrameContainerId);
 
-    removeIframeContainer([frameId]);
+    expect(container).not.toBeNull();
 
-    expect(document.getElementById(frameId)).toBeNull();
+    createIframe(container, iFrameId, iFrameId, '200', '200');
+
+    const iframe = document.getElementById(iFrameId);
+
+    expect(iframe).not.toBeNull();
+
+    removeIframe([iFrameId]);
+
+    expect(document.getElementById(iFrameId)).toBeNull();
   });
 });

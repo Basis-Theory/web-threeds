@@ -1,11 +1,11 @@
-import { removeIframeContainer } from '~src/utils/dom';
+import { removeIframe } from '~src/utils/dom';
 import { logger } from '~src/utils/logging';
 import { Notification, NotificationType } from '~src/utils/events';
 import { handleThreeDSRequest } from '~src/handlers/handleThreeDSRequest';
 import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 
 jest.mock('~src/utils/dom', () => ({
-  removeIframeContainer: jest.fn(),
+  removeIframe: jest.fn(),
 }));
 
 jest.mock('~src/utils/logging', () => ({
@@ -24,19 +24,19 @@ test.each([
   [
     `should resolve with response when receiving valid ${NotificationType.METHOD} notification`,
     NotificationType.METHOD,
-    METHOD_REQUEST.FRAME_CONTAINER_ID,
+    METHOD_REQUEST.IFRAME_NAME,
     { id: '1234' },
   ],
   [
     `should resolve with response when receiving valid ${NotificationType.CHALLENGE} notification`,
     NotificationType.CHALLENGE,
-    CHALLENGE_REQUEST.FRAME_CONTAINER_ID,
+    CHALLENGE_REQUEST.IFRAME_NAME,
     { id: '1234' },
   ],
   [
     `should resolve with response when receiving valid ${NotificationType.METHOD_TIME_OUT} notification`,
     NotificationType.METHOD_TIME_OUT,
-    METHOD_REQUEST.FRAME_CONTAINER_ID,
+    METHOD_REQUEST.IFRAME_NAME,
     { id: '1234' },
   ],
   ,
@@ -61,7 +61,7 @@ test.each([
     window.postMessage(notification, '*');
 
     await expect(promise).resolves.toEqual(expectedResponse);
-    expect(removeIframeContainer).toHaveBeenCalledWith([iframeContainerId]);
+    expect(removeIframe).toHaveBeenCalledWith([iframeContainerId]);
     expect(logger.log.info).toHaveBeenCalledWith(
       `${notificationType} notification received for session: ${expectedResponse.id}`
     );
