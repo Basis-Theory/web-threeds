@@ -1,3 +1,10 @@
+# [1.0.0-beta.9](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2024-03-12)
+
+
+### Bug Fixes
+
+* remove iframes instead of iframe containers ([#20](https://github.com/Basis-Theory/3ds-web/issues/20)) ([f549bb8](https://github.com/Basis-Theory/3ds-web/commit/f549bb8da2d58457f7760524b02143be56e13cd6))
+
 # [1.0.0-beta.8](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.7...v1.0.0-beta.8) (2024-03-11)
 
 
