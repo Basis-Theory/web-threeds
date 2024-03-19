@@ -1,3 +1,10 @@
+# [1.0.0-beta.11](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.10...v1.0.0-beta.11) (2024-03-19)
+
+
+### Features
+
+* add card brand and split msg handlers ([#21](https://github.com/Basis-Theory/3ds-web/issues/21)) ([dc53bc6](https://github.com/Basis-Theory/3ds-web/commit/dc53bc602358ae0a65d0081fd76672d98568889d))
+
 # [1.0.0-beta.10](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2024-03-19)
 
 
