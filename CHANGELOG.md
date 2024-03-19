@@ -1,3 +1,10 @@
+# [1.0.0-beta.10](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.9...v1.0.0-beta.10) (2024-03-19)
+
+
+### Features
+
+* adds support for custom id in challenge container ([#22](https://github.com/Basis-Theory/3ds-web/issues/22)) ([5e88290](https://github.com/Basis-Theory/3ds-web/commit/5e88290db7e66b541cca802961f5b55a8518a537))
+
 # [1.0.0-beta.9](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.8...v1.0.0-beta.9) (2024-03-12)
 
 
