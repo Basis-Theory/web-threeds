@@ -1,3 +1,10 @@
+# [1.0.0-beta.12](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.11...v1.0.0-beta.12) (2024-03-19)
+
+
+### Bug Fixes
+
+* make challenge container options optional ([#23](https://github.com/Basis-Theory/3ds-web/issues/23)) ([b7a6057](https://github.com/Basis-Theory/3ds-web/commit/b7a60575c0f3e51c88814c8d3a80d056fa387589))
+
 # [1.0.0-beta.11](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.10...v1.0.0-beta.11) (2024-03-19)
 
 
