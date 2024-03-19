@@ -10,17 +10,27 @@ type ConfigOptions = {
    * Allows customization of api base url
    */
   apiBaseUrl?: string;
+
+  challengeContainerOptions: {
+    /**
+     * Overrides default ID of iframe container
+     */
+    id?: string;
+  };
 };
 
 const BasisTheory3ds = (() => {
-  try {
-    createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
-    createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
-  } catch (error) {
-    logger.log.error('Unable to create iframe container', error as Error);
-  }
-
   return (apiKey: string, configOptions?: ConfigOptions) => {
+    try {
+      createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
+      createIframeContainer(
+        configOptions?.challengeContainerOptions?.id ??
+          CHALLENGE_REQUEST.FRAME_CONTAINER_ID
+      );
+    } catch (error) {
+      logger.log.error('Unable to create iframe container', error as Error);
+    }
+
     http.init(apiKey, configOptions?.apiBaseUrl);
 
     return { createSession, startChallenge };

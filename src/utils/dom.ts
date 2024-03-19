@@ -63,9 +63,19 @@ const createElement = (tagName: string, child: Node) => {
   return element;
 };
 
-const createIframeContainer = (id: string) => {
+const createIframeContainer = (
+  id: string,
+  /**
+   * Sets display none on the iframe container
+   */
+  hidden = false
+) => {
   const container = document.createElement('div');
   container.id = id;
+
+  if (hidden) {
+    container.setAttribute('style', 'display:none;');
+  }
 
   document.body.appendChild(container);
 };
