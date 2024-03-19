@@ -3,6 +3,7 @@ import { logger } from '~src/utils/logging';
 import { Notification, NotificationType } from '~src/utils/events';
 import { handleThreeDSRequest } from '~src/handlers/handleThreeDSRequest';
 import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
+import { handleChallenge } from '~src/handlers/handleChallenge';
 
 jest.mock('~src/utils/dom', () => ({
   removeIframe: jest.fn(),
@@ -22,24 +23,11 @@ afterEach(() => {
 
 test.each([
   [
-    `should resolve with response when receiving valid ${NotificationType.METHOD} notification`,
-    NotificationType.METHOD,
-    METHOD_REQUEST.IFRAME_NAME,
-    { id: '1234' },
-  ],
-  [
     `should resolve with response when receiving valid ${NotificationType.CHALLENGE} notification`,
     NotificationType.CHALLENGE,
     CHALLENGE_REQUEST.IFRAME_NAME,
     { id: '1234' },
   ],
-  [
-    `should resolve with response when receiving valid ${NotificationType.METHOD_TIME_OUT} notification`,
-    NotificationType.METHOD_TIME_OUT,
-    METHOD_REQUEST.IFRAME_NAME,
-    { id: '1234' },
-  ],
-  ,
 ])(
   '%s',
   async (
@@ -48,9 +36,7 @@ test.each([
     iframeContainerId,
     expectedResponse
   ) => {
-    const mockedHandler = jest.fn().mockResolvedValue({ id: '123' });
-
-    const promise = handleThreeDSRequest(mockedHandler)({});
+    const promise = handleChallenge();
 
     const notification: Notification = {
       isCompleted: true,

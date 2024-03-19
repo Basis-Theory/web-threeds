@@ -8,16 +8,17 @@ import {
 } from '~src/utils/dom';
 import { camelCaseToSnakeCase, snakeCaseToCamelCase } from '~src/utils/casing';
 import { encode } from '~src/utils/encoding';
-import { handleThreeDSRequest } from './handlers/handleThreeDSRequest';
 import { http } from '~src/utils/http';
 import { logger } from '~src/utils/logging';
 import { NotificationType, notify } from '~src/utils/events';
+import { handleCreateSession } from './handlers/handleCreateSession';
 export interface Create3dsSessionRequest {
   pan: string;
 }
 
 export type Create3dsSessionResponse = {
   id: string;
+  cardBrand?: string;
   method_url?: string;
   method_notification_url?: string;
 };
@@ -103,7 +104,10 @@ const makeSessionRequest = async ({
   return session;
 };
 
-export const createSession = handleThreeDSRequest<
-  Create3dsSessionRequest,
-  Create3dsSessionResponse
->(makeSessionRequest);
+export const createSession = async ({ pan }: Create3dsSessionRequest) => {
+  const session = await makeSessionRequest({ pan }).catch((error) => {
+    return Promise.reject((error as Error).message);
+  });
+
+  return await handleCreateSession(session);
+}

@@ -1,5 +1,5 @@
 import { CHALLENGE_REQUEST } from './constants';
-import { handleThreeDSRequest } from './handlers/handleThreeDSRequest';
+import { handleChallenge } from './handlers/handleChallenge';
 import { WindowSizeId, getWindowSizeById } from './utils/browser';
 import { createForm, createIframe, createInput } from './utils/dom';
 import { encode } from './utils/encoding';
@@ -130,7 +130,16 @@ const makeChallengeRequest = ({
   return Promise.resolve({ id: sessionId } as ThreeDSSession);
 };
 
-export const startChallenge = handleThreeDSRequest<
-  ThreeDSChallengeRequest,
-  ThreeDSSession
->(makeChallengeRequest);
+export const startChallenge = async ({
+  sessionId,
+  acsTransactionId,
+  acsChallengeUrl,
+  threeDSVersion,
+  windowSize,
+}: ThreeDSChallengeRequest) => {
+  await makeChallengeRequest({sessionId, acsTransactionId, acsChallengeUrl, threeDSVersion, windowSize}).catch((error) => {
+    return Promise.reject((error as Error).message);
+  });
+
+  return handleChallenge();
+}

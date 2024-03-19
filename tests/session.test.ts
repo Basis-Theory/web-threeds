@@ -71,17 +71,21 @@ describe('createSession', () => {
 
     const versionResponse = {
       id: 'mockSessionId',
+      cardBrand: 'visa',
       methodUrl: 'mockMethodUrl',
     };
 
     const createSessionResponse = {
       id: 'mockSessionId',
+      cardBrand: 'visa',
     };
 
     queueMock(versionResponse);
     queueMock(createSessionResponse);
 
     const response = createSession({ pan });
+
+    await resolvePendingPromises();
 
     // mock event from method notification
     window.dispatchEvent(
@@ -92,7 +96,6 @@ describe('createSession', () => {
 
     const res = await response;
 
-    expect(setTimeout).not.toHaveBeenCalled();
     expect(res).toStrictEqual(createSessionResponse);
   });
 
@@ -106,12 +109,14 @@ describe('createSession', () => {
 
     const versionResponse = {
       id: 'mockSessionId',
+      cardBrand: 'visa',
       methodUrl: 'mockMethodUrl',
       notificationUrl: 'http://test.com',
     };
 
     const createSessionResponse = {
       id: 'mockSessionId',
+      cardBrand: 'visa',
     };
 
     queueMock(versionResponse);

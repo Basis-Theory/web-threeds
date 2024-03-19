@@ -33,7 +33,7 @@ const BasisTheory3ds = (() => {
 
     http.init(apiKey, configOptions?.apiBaseUrl);
 
-    return { createSession, startChallenge };
+    return { createSession, startChallenge};
   };
 })();
 

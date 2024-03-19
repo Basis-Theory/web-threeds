@@ -2,7 +2,6 @@ import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
-import { NotificationType } from '~src/utils/events';
 import { WindowSizeId } from '~src/utils/browser';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
@@ -53,6 +52,13 @@ describe('startChallenge', () => {
     jest.useRealTimers();
   });
 
+  function resolvePendingPromises() {
+    jest.runAllTimersAsync();
+    // Wait for promises running in the non-async timer callback to complete.
+    // From https://stackoverflow.com/a/58716087/308237
+    return new Promise((fn, ...args) => global.setTimeout(fn, 0, ...args));
+  }
+
   it('should return session ID if challenge notification is received', async () => {
     // avoid https://github.com/jsdom/jsdom/issues/1937
     window.HTMLFormElement.prototype.submit = jest.fn();
@@ -72,6 +78,8 @@ describe('startChallenge', () => {
       threeDSVersion: '2.1.0',
       windowSize: '03',
     });
+
+    await resolvePendingPromises();
 
     window.dispatchEvent(
       new MessageEvent('message', {
