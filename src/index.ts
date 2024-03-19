@@ -11,7 +11,7 @@ type ConfigOptions = {
    */
   apiBaseUrl?: string;
 
-  challengeContainerOptions: {
+  challengeContainerOptions?: {
     /**
      * Overrides default ID of iframe container
      */
