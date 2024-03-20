@@ -21,7 +21,13 @@ export type ThreeDSDeviceInfo = {
   browserUserAgent?: string;
 };
 
-const stringifyValue = <T>(val: T) => (val ? JSON.stringify(val) : 'test');
+const stringifyValue = <T>(val: T): string => {
+  if (val === null || val === undefined) {
+    return '';
+  }
+  return JSON.stringify(val);
+};
+
 
 export const getColorDepth = () => {
   const validColorDepths = [1, 4, 8, 15, 16, 24, 32, 48];
