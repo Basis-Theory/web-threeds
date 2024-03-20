@@ -1,3 +1,10 @@
+# [1.0.0-beta.14](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.13...v1.0.0-beta.14) (2024-03-20)
+
+
+### Bug Fixes
+
+* fix stringify value method ([#25](https://github.com/Basis-Theory/3ds-web/issues/25)) ([f614827](https://github.com/Basis-Theory/3ds-web/commit/f614827b424c7432c327a3ade6694beb1a0290cc))
+
 # [1.0.0-beta.13](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.12...v1.0.0-beta.13) (2024-03-20)
 
 # [1.0.0-beta.12](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.11...v1.0.0-beta.12) (2024-03-19)
