@@ -1,3 +1,5 @@
+# [1.0.0-beta.15](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.14...v1.0.0-beta.15) (2024-03-27)
+
 # [1.0.0-beta.14](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.13...v1.0.0-beta.14) (2024-03-20)
 
 
