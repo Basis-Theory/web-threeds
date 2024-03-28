@@ -11,4 +11,3 @@ upload-bundle:
 
 release:
 	yarn release
-	$(MAKE) upload-bundle

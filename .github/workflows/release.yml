@@ -1,24 +1,11 @@
 name: Release
 
 on:
-  release:
+  push:
     branches: [master]
-    types: [released]
 
 jobs:
-  request_approval:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Deploy Request
-        uses: Basis-Theory/github-actions/deploy-slack-action@master
-        with:
-          slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
-          channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVAL_CHANNEL }}
-          mention-person: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVER }}
-          status: 'request'
-
   build-release:
-    environment: Production
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -72,7 +59,13 @@ jobs:
         env:
           SKIP_INSTALL: 1 # install with cache was done already
 
-      - name: Release
+      - name: Deploy CDN Bundle to Dev
+        run: make upload-bundle
+        env:
+          ENVIRONMENT: dev
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+
+      - name: Release Package to NPM and Bump Version
         run: make release
         env:
           ENVIRONMENT: prod
