@@ -2,6 +2,7 @@ name: Release
 
 on:
   release:
+    branches: [master]
     types: [released]
 
 jobs:
