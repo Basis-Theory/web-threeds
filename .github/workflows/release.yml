@@ -18,6 +18,7 @@ jobs:
           status: 'request'
 
   build-release:
+    environment: Production
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
