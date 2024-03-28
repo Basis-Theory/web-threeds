@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/Basis-Theory/3ds-web/compare/v1.0.1...v1.0.2) (2024-03-28)
+
+
+### Bug Fixes
+
+* push to npm on merge, manual trigger for prod cdn ([#32](https://github.com/Basis-Theory/3ds-web/issues/32)) ([68da02d](https://github.com/Basis-Theory/3ds-web/commit/68da02d6369ea6c6338a02ac1f8c3a5fa45e6707))
+
 # [1.0.0-beta.15](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.14...v1.0.0-beta.15) (2024-03-27)
 
 # [1.0.0-beta.14](https://github.com/Basis-Theory/3ds-web/compare/v1.0.0-beta.13...v1.0.0-beta.14) (2024-03-20)
