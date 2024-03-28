@@ -14,8 +14,8 @@ distPackage.scripts = {
   postversion: 'cd .. && node ./scripts/bump.js',
 };
 
-// include all 'dist/*' files
-distPackage.files = ['*'];
+// include all 'dist/*' files, but bundles
+distPackage.files = ['*', '!*.bundle.js'];
 
 // updates source flags removing 'dist' path
 ['main', 'module', 'types'].forEach((prop) => {

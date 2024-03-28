@@ -78,6 +78,17 @@
     "types": {
       "isLibrary": true,
       "sourceMap": false
+    },
+    "bundle": {
+      "context": "browser",
+      "outputFormat": "global",
+      "isLibrary": false,
+      "sourceMap": false,
+      "distDir": "dist/bundle",
+      "optimize": true,
+      "engines": {
+        "browsers": "> 0.25%"
+      }
     }
   },
   "alias": {},
