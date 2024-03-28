@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/Basis-Theory/3ds-web/compare/v1.0.2...v1.0.3) (2024-03-28)
+
+
+### Bug Fixes
+
+* fix cdn prod deploy, tag release as latest in npm ([#33](https://github.com/Basis-Theory/3ds-web/issues/33)) ([a8ca3b8](https://github.com/Basis-Theory/3ds-web/commit/a8ca3b82c647aa24803bea3f1bc85391fc45f074))
+
 ## [1.0.2](https://github.com/Basis-Theory/3ds-web/compare/v1.0.1...v1.0.2) (2024-03-28)
 
 
