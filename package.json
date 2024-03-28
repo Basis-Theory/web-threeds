@@ -97,7 +97,8 @@
     "node": ">=18.x"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "tag": "latest"
   },
   "size-limit": [
     {
