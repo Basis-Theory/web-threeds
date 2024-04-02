@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/Basis-Theory/3ds-web/compare/v1.0.3...v1.0.4) (2024-04-02)
+
+
+### Bug Fixes
+
+* fix bundle upload path for minor versions ([#34](https://github.com/Basis-Theory/3ds-web/issues/34)) ([9e73e31](https://github.com/Basis-Theory/3ds-web/commit/9e73e318de610a0519380209e5556816760caa14))
+
 ## [1.0.3](https://github.com/Basis-Theory/3ds-web/compare/v1.0.2...v1.0.3) (2024-03-28)
 
 
