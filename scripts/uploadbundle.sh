@@ -54,7 +54,7 @@ else
 
   echo "Uploading SDK bundle to $BUNDLE_HOST/$MINOR_VERSION_PATH"
 
-  aws s3 cp --acl public-read "$BUNDLE_PATH" s3://"${BUNDLE_HOST}"/"${MAJOR_VERSION_PATH}"
+  aws s3 cp --acl public-read "$BUNDLE_PATH" s3://"${BUNDLE_HOST}"/"${MINOR_VERSION_PATH}"
 fi
 
 result=$?
