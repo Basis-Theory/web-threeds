@@ -5,6 +5,12 @@ import { createIframeContainer } from '~src/utils/dom';
 import { logger } from '~src/utils/logging';
 import { http } from '~src/utils/http';
 
+declare global {
+  interface Window {
+    BasisTheory3ds?: typeof BasisTheory3ds;
+  }
+}
+
 type ConfigOptions = {
   /**
    * Allows customization of api base url
@@ -33,8 +39,10 @@ const BasisTheory3ds = (() => {
 
     http.init(apiKey, configOptions?.apiBaseUrl);
 
-    return { createSession, startChallenge};
+    return { createSession, startChallenge };
   };
 })();
+
+window.BasisTheory3ds = BasisTheory3ds;
 
 export { BasisTheory3ds };
