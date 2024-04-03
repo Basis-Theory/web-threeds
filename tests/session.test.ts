@@ -135,6 +135,7 @@ describe('createSession', () => {
   it('should handle the case where version methodUrl is not available', async () => {
     const versionResponse = {
       id: 'mockSessionId',
+      cardBrand: 'visa',
       methodUrl: undefined,
     };
 
@@ -143,16 +144,9 @@ describe('createSession', () => {
     queueMock(versionResponse);
     queueMock(undefined);
 
-    const response = createSession({ pan });
+    const response = await createSession({ pan });
 
-    // mock event from method notification
-    window.dispatchEvent(
-      new MessageEvent('message', {
-        data: undefined,
-      })
-    );
-
-    expect(response).rejects.toEqual('Something happened, please try again.');
+    expect(response).toStrictEqual({ cardBrand: 'visa', id: 'mockSessionId' });
     expect(setTimeout).not.toHaveBeenCalled();
   });
 });

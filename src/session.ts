@@ -6,7 +6,7 @@ import {
   createInput,
   createElement,
 } from '~src/utils/dom';
-import { camelCaseToSnakeCase, snakeCaseToCamelCase } from '~src/utils/casing';
+import { DeepTransformKeysCase, camelCaseToSnakeCase, snakeCaseToCamelCase } from '~src/utils/casing';
 import { encode } from '~src/utils/encoding';
 import { http } from '~src/utils/http';
 import { logger } from '~src/utils/logging';
@@ -60,7 +60,7 @@ const submitMethodRequest = (
 
 const makeSessionRequest = async ({
   pan,
-}: Create3dsSessionRequest): Promise<Create3dsSessionResponse> => {
+}: Create3dsSessionRequest): Promise<DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>> => {
   const deviceInfo = getDeviceInfo();
 
   const response = await http.client(
@@ -87,13 +87,13 @@ const makeSessionRequest = async ({
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
-  notify({
-    isCompleted: false,
-    id: session.id,
-    type: NotificationType.START_METHOD_TIME_OUT,
-  });
-
   if (session.methodUrl) {
+    notify({
+      isCompleted: false,
+      id: session.id,
+      type: NotificationType.START_METHOD_TIME_OUT,
+    });
+
     submitMethodRequest(
       session.methodUrl,
       session.id,
@@ -109,5 +109,13 @@ export const createSession = async ({ pan }: Create3dsSessionRequest) => {
     return Promise.reject((error as Error).message);
   });
 
+  // skip message handling, no method request necessary
+  if (!session.methodUrl) {
+    return {
+      id: session.id,
+      cardBrand: session.cardBrand,
+    };
+  }
+
   return await handleCreateSession(session);
-}
+};

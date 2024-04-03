@@ -9,7 +9,7 @@ type TransformKeyCase<
     ? `${Start extends Uppercase<Start> ? '_' : ''}${Lowercase<Start>}${TransformKeyCase<Rest, 'snake'>}`
     : S;
 
-type DeepTransformKeysCase<T, Case extends 'camel' | 'snake'> = T extends string
+export type DeepTransformKeysCase<T, Case extends 'camel' | 'snake'> = T extends string
   ? TransformKeyCase<T, Case>
   : T extends object
     ? {

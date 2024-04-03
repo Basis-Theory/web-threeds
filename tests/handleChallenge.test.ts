@@ -1,7 +1,6 @@
 import { removeIframe } from '~src/utils/dom';
 import { logger } from '~src/utils/logging';
 import { Notification, NotificationType } from '~src/utils/events';
-import { handleThreeDSRequest } from '~src/handlers/handleThreeDSRequest';
 import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 import { handleChallenge } from '~src/handlers/handleChallenge';
 
