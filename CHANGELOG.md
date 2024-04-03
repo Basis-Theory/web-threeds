@@ -1,3 +1,10 @@
+## [1.0.7](https://github.com/Basis-Theory/3ds-web/compare/v1.0.6...v1.0.7) (2024-04-03)
+
+
+### Bug Fixes
+
+* export sdk entry point to window object ([#37](https://github.com/Basis-Theory/3ds-web/issues/37)) ([4979cfc](https://github.com/Basis-Theory/3ds-web/commit/4979cfc112e4a813eaf78fcb44a46512f16dc1c1))
+
 ## [1.0.6](https://github.com/Basis-Theory/3ds-web/compare/v1.0.5...v1.0.6) (2024-04-03)
 
 
