@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/Basis-Theory/3ds-web/compare/v1.0.5...v1.0.6) (2024-04-03)
+
+
+### Bug Fixes
+
+* return session straight away if methodurl not available ([#36](https://github.com/Basis-Theory/3ds-web/issues/36)) ([fe022c9](https://github.com/Basis-Theory/3ds-web/commit/fe022c9a13f0415d52252d698135da360caa5e7f))
+
 ## [1.0.5](https://github.com/Basis-Theory/3ds-web/compare/v1.0.4...v1.0.5) (2024-04-03)
 
 ## [1.0.4](https://github.com/Basis-Theory/3ds-web/compare/v1.0.3...v1.0.4) (2024-04-02)
