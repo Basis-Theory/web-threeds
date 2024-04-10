@@ -70,7 +70,20 @@ const createIframeContainer = (
    */
   hidden = false
 ) => {
-  const container = document.createElement('div');
+  let container;
+
+  // check if container exists and just wipe content
+  container = document.getElementById(id);
+  if (container) {
+    container.innerHTML = '';
+
+    if (hidden) {
+      container.setAttribute('style', 'display:none;');
+    }
+    return;
+  }
+
+  container = document.createElement('div');
   container.id = id;
 
   if (hidden) {
