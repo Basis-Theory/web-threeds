@@ -1,3 +1,10 @@
+## [1.0.9](https://github.com/Basis-Theory/3ds-web/compare/v1.0.8...v1.0.9) (2024-04-10)
+
+
+### Bug Fixes
+
+* check if container already exists before creating ([#38](https://github.com/Basis-Theory/3ds-web/issues/38)) ([8e7b8ff](https://github.com/Basis-Theory/3ds-web/commit/8e7b8ffed4b26d8fbdedf19faba482308afc7236))
+
 ## [1.0.8](https://github.com/Basis-Theory/3ds-web/compare/v1.0.7...v1.0.8) (2024-04-09)
 
 ## [1.0.7](https://github.com/Basis-Theory/3ds-web/compare/v1.0.6...v1.0.7) (2024-04-03)
