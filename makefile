@@ -13,4 +13,4 @@ release:
 	yarn release
 
 get-version:
-	yarn release --dry-run --no-ci
+	yarn release --dry-run --no-ci && cp .VERSION dist/

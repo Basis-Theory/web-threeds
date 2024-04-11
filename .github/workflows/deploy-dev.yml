@@ -94,13 +94,13 @@ jobs:
         with:
           install-command: yarn --frozen-lockfile --no-progress --ignore-scripts
 
-      - name: Get Next Version
-        run: make get-version
-
       - name: Build
         run: make build
         env:
           SKIP_INSTALL: 1 # install with cache was done already
+
+      - name: Get Next Version
+        run: make get-version
 
       - name: Deploy CDN Bundle to Dev
         run: make upload-bundle
