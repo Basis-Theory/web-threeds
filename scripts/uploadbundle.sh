@@ -87,8 +87,7 @@ if ! [[ -z "${CLOUDFLARE}" ]]; then
   rclone --config .rclone.conf \
     --s3-access-key-id ${R2_ACCESS_KEY} \
     --s3-secret-access-key ${R2_SECRET_KEY} \
-    c
-    opy --verbose ${BUNDLE_PATH} r2:${ENVIRONMENT}-3ds/${MINOR_VERSION_PATH}
+    copy --verbose ${BUNDLE_PATH} r2:${ENVIRONMENT}-3ds/${MINOR_VERSION_PATH}
 fi
 
 result=$?
