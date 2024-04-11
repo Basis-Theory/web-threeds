@@ -13,10 +13,6 @@
       {
         "pkgRoot": "dist"
       }
-    ],
-    "@semantic-release/exec",
-    {
-      "verifyReleaseCmd": "echo ${nextRelease.version} > .VERSION"
-    }
+    ]
   ]
 }

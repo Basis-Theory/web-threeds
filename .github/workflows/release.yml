@@ -76,6 +76,8 @@ jobs:
         with:
           token: ${{ secrets.SEMANTIC_RELEASE_PAT }}
 
+      - uses: AnimMouse/setup-rclone@v1
+
       - name: Configure AWS Actions Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
