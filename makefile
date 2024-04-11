@@ -13,4 +13,4 @@ release:
 	yarn release
 
 get-version:
-	yarn release --dry-run --no-ci | grep -i 'The next release version is' | awk '{print $NF}' > .VERSION && cp .VERSION dist/
+	./scripts/getversion.sh
