@@ -113,6 +113,8 @@ jobs:
           ENVIRONMENT: dev
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
           IS_PR_WORKFLOW: true
+          R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
+          R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}
 
   tag-and-release:
     runs-on: ubuntu-latest
