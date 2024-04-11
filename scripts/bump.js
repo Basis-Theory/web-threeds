@@ -16,3 +16,9 @@ fs.writeFileSync(
   './dist/package.json',
   JSON.stringify(distPackage, undefined, 2)
 );
+
+// update .VERSION
+fs.writeFileSync(
+  './.VERSION',
+  `${distPackage.version}\n`
+);

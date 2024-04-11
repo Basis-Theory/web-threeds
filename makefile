@@ -11,3 +11,6 @@ upload-bundle:
 
 release:
 	yarn release
+
+get-version:
+	yarn release --dry-run --no-ci

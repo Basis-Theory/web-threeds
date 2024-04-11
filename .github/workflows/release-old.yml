@@ -1,21 +1,11 @@
-name: Deploy Bundle to Prod
+name: Release
 
-on: workflow_dispatch
+on:
+  push:
+    branches: [do-not-run]
 
 jobs:
-  request_approval:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Deploy Request
-        uses: Basis-Theory/github-actions/deploy-slack-action@master
-        with:
-          slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
-          channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVAL_CHANNEL }}
-          mention-person: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVER }}
-          status: 'request'
-
   build-release:
-    environment: Production
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -38,13 +28,13 @@ jobs:
       - name: Configure AWS Actions Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
+          role-to-assume: arn:aws:iam::914054469264:role/github-actions-admin-dev
           aws-region: us-east-2
 
       - name: Configure AWS Terraform Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
+          role-to-assume: arn:aws:iam::914054469264:role/terraform-admin
           aws-region: us-east-2
           role-chaining: true
 
@@ -69,8 +59,14 @@ jobs:
         env:
           SKIP_INSTALL: 1 # install with cache was done already
 
-      - name: Deploy CDN Bundle to Prod
+      - name: Deploy CDN Bundle to Dev
         run: make upload-bundle
+        env:
+          ENVIRONMENT: dev
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+
+      - name: Release Package to NPM and Bump Version
+        run: make release
         env:
           ENVIRONMENT: prod
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}

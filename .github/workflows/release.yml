@@ -1,11 +1,60 @@
 name: Release
 
 on:
-  push:
-    branches: [master]
+  release:
+    types: [released]
 
 jobs:
+  request_approval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Deploy Request
+        uses: Basis-Theory/github-actions/deploy-slack-action@master
+        with:
+          slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
+          channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVAL_CHANNEL }}
+          mention-person: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVER }}
+          status: 'request'
+
+  terraform-prod:
+    environment: Production
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+
+    - name: Configure AWS Actions Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
+        aws-region: us-east-2
+
+    - name: Configure AWS Terraform Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
+        aws-region: us-east-2
+        role-chaining: true
+
+    - name: Terraform apply prod
+      id: plan
+      run: terraform apply -auto-approve
+      working-directory: terraform/
+      continue-on-error: false
+      env:
+        TF_VAR_env: prod
+        TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+        TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
+
   build-release:
+    environment: Production
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -19,6 +68,8 @@ jobs:
       CI: 1
       HUSKY: 0 # disables husky hooks
       NPM_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
+    needs:
+      - terraform-prod
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -28,13 +79,13 @@ jobs:
       - name: Configure AWS Actions Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::914054469264:role/github-actions-admin-dev
+          role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
           aws-region: us-east-2
 
       - name: Configure AWS Terraform Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::914054469264:role/terraform-admin
+          role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
           aws-region: us-east-2
           role-chaining: true
 
@@ -59,17 +110,29 @@ jobs:
         env:
           SKIP_INSTALL: 1 # install with cache was done already
 
-      - name: Deploy CDN Bundle to Dev
-        run: make upload-bundle
-        env:
-          ENVIRONMENT: dev
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
-
       - name: Release Package to NPM and Bump Version
         run: make release
         env:
           ENVIRONMENT: prod
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+
+      - name: Deploy CDN Bundle to Prod
+        run: make upload-bundle
+        env:
+          AWS: true
+          CLOUDFLARE: true
+          ENVIRONMENT: prod
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+
+      - name: Commit Version to Repo
+        run: |
+          git config --local user.email "platform@basistheory.com"
+          git config --local user.name "github-actions[bot]"
+
+          VERSION=$(cat .VERSION)
+          git add .VERSION package.json CHANGELOG.md
+          git commit -m "chore(release): $VERSION [skipci]"
+          git push
 
       - name: Slack Deploy / Release Alert
         uses: 8398a7/action-slack@v3

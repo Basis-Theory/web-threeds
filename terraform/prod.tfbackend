@@ -1,0 +1,3 @@
+bucket = "bt-terraform-state-prod-us-east-2"
+key    = "prod/cdn/terraform.tfstate"
+region = "us-east-2"
