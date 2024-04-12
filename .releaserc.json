@@ -6,7 +6,8 @@
       {
         "releaseRules": [
           { "type": "refactor", "release": "patch" },
-          { "type": "chore", "scope": "deps", "release": "patch" }
+          { "type": "chore", "scope": "deps", "release": "patch" },
+          { "type": "chore", "scope": "ci", "release": "patch" }
         ]
       }
     ],
