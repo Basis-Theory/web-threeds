@@ -43,6 +43,12 @@ jobs:
         aws-region: us-east-2
         role-chaining: true
 
+    - name: Terraform init
+      id: init
+      run: terraform init -backend-config=prod.tfbackend
+      working-directory: terraform/
+      continue-on-error: false
+
     - name: Terraform apply prod
       id: plan
       run: terraform apply -auto-approve
@@ -52,6 +58,16 @@ jobs:
         TF_VAR_env: prod
         TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
         TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
+
+    - name: Slack Deploy Alert
+      uses: 8398a7/action-slack@v3
+      if: failure()
+      with:
+        status: ${{ job.status }}
+        channel: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
+        fields: 'repo,commit,message,workflow,job'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   build-release:
     environment: Production
@@ -137,6 +153,23 @@ jobs:
           git add .VERSION package.json CHANGELOG.md
           git commit -m "chore(release): $VERSION [skipci]"
           git push
+
+      - name: Slack Deploy Alert
+        uses: 8398a7/action-slack@v3
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          channel: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
+          fields: 'repo,commit,message,workflow,job'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  post-deploy:
+    needs: build-release
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Slack Deploy / Release Alert
         uses: 8398a7/action-slack@v3
