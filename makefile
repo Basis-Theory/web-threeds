@@ -12,5 +12,5 @@ upload-bundle:
 release:
 	yarn release
 
-get-version:
-	./scripts/getversion.sh
+update-version:
+	./scripts/updateversion.sh

@@ -24,8 +24,8 @@ else
 fi
 
 # get sdk versions
-MAJOR_VERSION=$(cat .VERSION | cut -d. -f1)
-MINOR_VERSION=$(cat .VERSION | cut -d. -f2)
+MAJOR_VERSION=$(cat package.json | jq -r '.version' | cut -d. -f1)
+MINOR_VERSION=$(cat package.json | jq -r '.version' | cut -d. -f2)
 
 # get versioned paths
 LATEST_VERSION_PATH="index.js"

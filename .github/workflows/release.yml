@@ -5,7 +5,7 @@ on:
     types: [released]
 
 jobs:
-  request_approval:
+  request-approval:
     runs-on: ubuntu-latest
     steps:
       - name: Send Deploy Request
@@ -23,7 +23,7 @@ jobs:
       id-token: write
       contents: read
     steps:
-    - name: Checkout repo
+    - name: Checkout Repo
       uses: actions/checkout@v4
 
     - uses: hashicorp/setup-terraform@v3
@@ -43,13 +43,13 @@ jobs:
         aws-region: us-east-2
         role-chaining: true
 
-    - name: Terraform init
+    - name: Terraform Init
       id: init
       run: terraform init -backend-config=prod.tfbackend
       working-directory: terraform/
       continue-on-error: false
 
-    - name: Terraform apply prod
+    - name: Terraform Apply Prod
       id: plan
       run: terraform apply -auto-approve
       working-directory: terraform/
@@ -59,18 +59,7 @@ jobs:
         TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
         TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
 
-    - name: Slack Deploy Alert
-      uses: 8398a7/action-slack@v3
-      if: failure()
-      with:
-        status: ${{ job.status }}
-        channel: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
-        fields: 'repo,commit,message,workflow,job'
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   build-release:
-    environment: Production
     runs-on: ${{ matrix.os }}
     permissions:
       id-token: write
@@ -87,7 +76,7 @@ jobs:
     needs:
       - terraform-prod
     steps:
-      - name: Checkout repo
+      - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.SEMANTIC_RELEASE_PAT }}
@@ -118,21 +107,24 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install deps (with cache)
+      - name: Install Deps (with cache)
         uses: bahmutov/npm-install@v1
         with:
           install-command: yarn --frozen-lockfile --no-progress --ignore-scripts
+
+      - name: Bump Version
+        run: make update-version NEW_VERSION=${{ github.event.release.tag_name }}
 
       - name: Build
         run: make build
         env:
           SKIP_INSTALL: 1 # install with cache was done already
 
-      - name: Release Package to NPM and Bump Version
-        run: make release
+      - name: Publish Package to NPM
+        run: yarn publish
         env:
           ENVIRONMENT: prod
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
 
       - name: Deploy CDN Bundle to Prod
         run: make upload-bundle
@@ -149,8 +141,8 @@ jobs:
           git config --local user.email "platform@basistheory.com"
           git config --local user.name "github-actions[bot]"
 
-          VERSION=$(cat .VERSION)
-          git add .VERSION package.json CHANGELOG.md
+          VERSION=$(cat package.json | jq -r '.version')
+          git add package.json CHANGELOG.md
           git commit -m "chore(release): $VERSION [skipci]"
           git push
 
