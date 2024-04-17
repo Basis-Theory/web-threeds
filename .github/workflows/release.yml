@@ -106,6 +106,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
 
       - name: Install Deps (with cache)
         uses: bahmutov/npm-install@v1
@@ -124,7 +128,7 @@ jobs:
         run: yarn publish
         env:
           ENVIRONMENT: prod
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
 
       - name: Deploy CDN Bundle to Prod
         run: make upload-bundle
@@ -159,7 +163,6 @@ jobs:
   post-deploy:
     needs: build-release
     runs-on: ubuntu-latest
-    if: always()
     steps:
       - uses: actions/checkout@v4
 
