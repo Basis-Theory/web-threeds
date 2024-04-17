@@ -117,7 +117,7 @@ jobs:
           install-command: yarn --frozen-lockfile --no-progress --ignore-scripts
 
       - name: Bump Version
-        run: make update-version NEW_VERSION=${{ github.event.release.tag_name }}
+        run: make update-version NEW_VERSION=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
 
       - name: Build
         run: make build
