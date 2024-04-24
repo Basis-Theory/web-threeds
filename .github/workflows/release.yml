@@ -133,7 +133,6 @@ jobs:
       - name: Deploy CDN Bundle to Prod
         run: make upload-bundle
         env:
-          AWS: true
           CLOUDFLARE: true
           ENVIRONMENT: prod
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
