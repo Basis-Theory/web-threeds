@@ -1,4 +1,13 @@
-module.exports = {
+import { FlatCompat } from '@eslint/eslintrc';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const compat = new FlatCompat();
+
+export default compat.config({
   root: true,
   env: {
     browser: false,
@@ -14,7 +23,6 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'get-off-my-lawn', 'prettier'],
   extends: [
-    'eslint:recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'prettier',
   ],
@@ -25,7 +33,8 @@ module.exports = {
     '**/*.cjs',
     '**/*.mjs',
     '**/*.js',
+    'dist',
     '**/*.test.ts',
     'jest.config.js',
   ],
-};
+});

@@ -18,7 +18,7 @@
     "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": {
-      "~src/*": ["src/*"],
-    },
-  },
+      "~src/*": ["src/*"]
+    }
+  }
 }
