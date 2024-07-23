@@ -45,6 +45,8 @@ jobs:
 
       - name: Install deps (with cache)
         uses: bahmutov/npm-install@v1
+        with:
+          install-command: yarn --immutable --no-progress --ignore-scripts
 
       - id: read-package-json
         name: Read package.json

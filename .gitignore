@@ -11,3 +11,4 @@ cypress/downloads
 .env
 .vscode/
 .parcel-cache/
+.yarn
