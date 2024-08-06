@@ -28,6 +28,7 @@ export default compat.config({
   ],
   rules: {
     '@typescript-eslint/no-floating-promises': 'warn',
+    '@typescript-eslint/prefer-promise-reject-errors': 'warn',
   },
   ignorePatterns: [
     '**/*.cjs',
