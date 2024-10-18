@@ -92,6 +92,28 @@ describe('startChallenge', () => {
     expect(res).toStrictEqual(startChallengeResponse);
   });
 
+  it('should reject after challenge timeout', async () => {
+    // avoid https://github.com/jsdom/jsdom/issues/1937
+    window.HTMLFormElement.prototype.submit = jest.fn();
+
+    createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
+
+    const sessionId = '444';
+
+    const response = startChallenge({
+      sessionId: sessionId,
+      acsTransactionId: '1234',
+      acsChallengeUrl: 'http://localhost:5000/acs/test',
+      threeDSVersion: '2.1.0',
+      windowSize: '03',
+      timeout: 10000,
+    });
+
+    await resolvePendingPromises();
+
+    expect(response).rejects.toEqual('Timed out waiting for a challenge response. Please try again.');
+  }, 10001);
+
   it('should throw when CReq has invalid values', async () => {
     const sessionId = '222';
 

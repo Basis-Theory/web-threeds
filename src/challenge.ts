@@ -19,6 +19,7 @@ type ThreeDSChallengeRequest = {
    * - '05' = 100%x100%
    */
   windowSize?: `${WindowSizeId}` | WindowSizeId;
+  timeout?: number;
 };
 interface AcsThreeDSChallengeRequest {
   messageType: 'CReq'; // Must always be set to "CReq"
@@ -136,10 +137,11 @@ export const startChallenge = async ({
   acsChallengeUrl,
   threeDSVersion,
   windowSize,
+  timeout = 60000,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({sessionId, acsTransactionId, acsChallengeUrl, threeDSVersion, windowSize}).catch((error) => {
     return Promise.reject((error as Error).message);
   });
 
-  return handleChallenge();
+  return handleChallenge(timeout);
 }

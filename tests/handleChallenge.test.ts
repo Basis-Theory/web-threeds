@@ -43,9 +43,13 @@ test.each([
       id: '1234',
     };
 
+    // Dispatch the message
     window.postMessage(notification, '*');
 
-    await expect(promise).resolves.toEqual(expectedResponse);
+    // Wait for the promise to resolve
+    const result = await promise;
+
+    expect(result).toEqual(expectedResponse);
     expect(removeIframe).toHaveBeenCalledWith([iframeContainerId]);
     expect(logger.log.info).toHaveBeenCalledWith(
       `${notificationType} notification received for session: ${expectedResponse.id}`
