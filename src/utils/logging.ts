@@ -12,7 +12,7 @@ export const logger = (() => {
     const payload = {
       application: '3ds-web',
       ddsource: '3ds-web',
-      service: '3DS Web',
+      service: '3ds-web',
       ...attributes,
       level,
       message:

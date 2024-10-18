@@ -6,12 +6,17 @@ import {
   createInput,
   createElement,
 } from '~src/utils/dom';
-import { DeepTransformKeysCase, camelCaseToSnakeCase, snakeCaseToCamelCase } from '~src/utils/casing';
+import {
+  DeepTransformKeysCase,
+  camelCaseToSnakeCase,
+  snakeCaseToCamelCase,
+} from '~src/utils/casing';
 import { encode } from '~src/utils/encoding';
 import { http } from '~src/utils/http';
 import { logger } from '~src/utils/logging';
 import { NotificationType, notify } from '~src/utils/events';
 import { handleCreateSession } from './handlers/handleCreateSession';
+import { isApiError, processApiError } from './utils/errors';
 export interface Create3dsSessionRequest {
   pan: string;
 }
@@ -60,7 +65,9 @@ const submitMethodRequest = (
 
 const makeSessionRequest = async ({
   pan,
-}: Create3dsSessionRequest): Promise<DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>> => {
+}: Create3dsSessionRequest): Promise<
+  DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
+> => {
   const deviceInfo = getDeviceInfo();
 
   const response = await http.client(
@@ -74,11 +81,23 @@ const makeSessionRequest = async ({
   );
 
   if (!response.ok) {
-    const msg = `HTTP error! Status: ${response.status}`;
+    let json: unknown;
 
-    logger.log.error(msg);
+    try {
+      json = await response.json();
+    } catch {
+      const msg = `Failed to parse error response. HTTP Status: ${response.status}`;
+      logger.log.error(msg);
+      throw new Error(msg);
+    }
 
-    throw new Error(msg);
+    if (isApiError(json)) {
+      processApiError(json);
+    } else {
+      const msg = `An unknown error occurred while creating session. Status: ${response.status}.`;
+      logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
+      throw new Error(msg);
+    }
   }
 
   const session = snakeCaseToCamelCase<Create3dsSessionResponse>(

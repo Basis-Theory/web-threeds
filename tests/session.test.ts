@@ -5,9 +5,14 @@ import { http } from '~src/utils/http';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
 
-const queueMock = (responseData?: Record<string, unknown>) => {
+const queueMock = (
+  responseData?: Record<string, unknown>,
+  ok: boolean = true,
+  status: number = ok ? 200 : 400
+) => {
   fetchMocksQueue.push({
-    ok: true,
+    ok,
+    status,
     json: () => Promise.resolve(responseData),
   });
 };
@@ -148,5 +153,44 @@ describe('createSession', () => {
 
     expect(response).toStrictEqual({ cardBrand: 'visa', id: 'mockSessionId' });
     expect(setTimeout).not.toHaveBeenCalled();
+  });
+
+  it('should handle API errors and return custom error messages', async () => {
+    const pan = 'mockPan';
+
+    const errorResponse = {
+      errors: {
+        'The card was not supported by any card schemes': [
+          'Cardholder Account Number is not in a range belonging to Issuer.',
+        ],
+      },
+      title: '3DS Service Validation Error',
+      status: 400,
+      detail: "Check the 'errors' property for more details",
+    };
+
+    // Simulate an error response from the API
+    queueMock(errorResponse, false, 400);
+
+    await expect(createSession({ pan })).rejects.toEqual(
+      '3DS is not supported for the provided card'
+    );
+  });
+
+  it('should throw the original error title for unmapped errors', async () => {
+    const pan = 'mockPan';
+
+    const errorResponse = {
+      errors: {
+        'Some unknown error': ['An unexpected error occurred.'],
+      },
+      title: 'Unknown Error',
+      status: 500,
+      detail: 'An unexpected error occurred.',
+    };
+
+    queueMock(errorResponse, false, 500);
+
+    await expect(createSession({ pan })).rejects.toEqual('Unknown Error');
   });
 });
