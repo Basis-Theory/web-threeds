@@ -4,6 +4,7 @@ import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
+let fetchMockCalls: any[] = [];
 
 const queueMock = (
   responseData?: Record<string, unknown>,
@@ -19,6 +20,7 @@ const queueMock = (
 
 const resetMockQueue = () => {
   fetchMocksQueue = [];
+  fetchMockCalls = [];
 };
 
 jest.mock('~src/utils/logging', () => ({
@@ -40,7 +42,8 @@ describe('createSession', () => {
     http.init('test');
 
     // @ts-expect-error
-    global.fetch = jest.fn(() => {
+    global.fetch = jest.fn((...args) => {
+      fetchMockCalls.push(args);
       if (fetchMocksQueue.length === 0) {
         throw new Error('No more fetch mocks in the queue.');
       }
@@ -72,7 +75,7 @@ describe('createSession', () => {
 
     createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
 
-    const pan = 'mockPan';
+    const tokenId = 'mockId';
 
     const versionResponse = {
       id: 'mockSessionId',
@@ -88,7 +91,7 @@ describe('createSession', () => {
     queueMock(versionResponse);
     queueMock(createSessionResponse);
 
-    const response = createSession({ pan });
+    const response = createSession({ tokenId });
 
     await resolvePendingPromises();
 
@@ -110,7 +113,7 @@ describe('createSession', () => {
 
     createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
 
-    const pan = 'mockPan';
+    const tokenId = 'mockId';
 
     const versionResponse = {
       id: 'mockSessionId',
@@ -127,7 +130,7 @@ describe('createSession', () => {
     queueMock(versionResponse);
     queueMock(createSessionResponse);
 
-    const res = createSession({ pan });
+    const res = createSession({ tokenId });
 
     await resolvePendingPromises();
 
@@ -144,19 +147,19 @@ describe('createSession', () => {
       methodUrl: undefined,
     };
 
-    const pan = 'mockPan';
+    const tokenId = 'tokenId';
 
     queueMock(versionResponse);
     queueMock(undefined);
 
-    const response = await createSession({ pan });
+    const response = await createSession({ tokenId });
 
     expect(response).toStrictEqual({ cardBrand: 'visa', id: 'mockSessionId' });
     expect(setTimeout).not.toHaveBeenCalled();
   });
 
   it('should handle API errors and return custom error messages', async () => {
-    const pan = 'mockPan';
+    const tokenId = 'mockId';
 
     const errorResponse = {
       errors: {
@@ -172,13 +175,13 @@ describe('createSession', () => {
     // Simulate an error response from the API
     queueMock(errorResponse, false, 400);
 
-    await expect(createSession({ pan })).rejects.toEqual(
+    await expect(createSession({ tokenId })).rejects.toEqual(
       '3DS is not supported for the provided card'
     );
   });
 
   it('should throw the original error title for unmapped errors', async () => {
-    const pan = 'mockPan';
+    const tokenId = 'mockId';
 
     const errorResponse = {
       errors: {
@@ -191,6 +194,84 @@ describe('createSession', () => {
 
     queueMock(errorResponse, false, 500);
 
-    await expect(createSession({ pan })).rejects.toEqual('Unknown Error');
+    await expect(createSession({ tokenId })).rejects.toEqual('Unknown Error');
+  });
+
+  it('should send tokenId in the request if tokenId is provided', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ tokenId: tokenId });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual(createSessionResponse);
+
+    const requestBody = JSON.parse(fetchMockCalls[0][1].body);
+    expect(requestBody).toHaveProperty('token_id', tokenId);
+  });
+
+  it('should send tokenIntentId in the request if tokenIntentId is provided', async () => {
+    const tokenIntentId = 'mockTokenIntentId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ tokenIntentId: tokenIntentId });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual(createSessionResponse);
+
+    const requestBody = JSON.parse(fetchMockCalls[0][1].body);
+    expect(requestBody).toHaveProperty('token_intent_id', tokenIntentId);
+  });
+
+  it('should throw an error if more than one of tokenId, tokenIntentId or pan is provided', async () => {
+    const tokenId = 'mockTokenId';
+    const tokenIntentId = 'mockTokenIntentId';
+
+    await expect(createSession({ tokenId, tokenIntentId })).rejects.toEqual(
+      'Only one of pan, tokenId, or tokenIntentId should be provided.'
+    );
+  });
+
+  it('should throw an error if no params are included', async () => {
+    await expect(createSession({})).rejects.toEqual(
+      'One of pan, tokenId, or tokenIntentId is required.'
+    );
+  })
+
+  /**
+   * @deprecated `pan` has been deprecated in favor of tokenId
+   */
+  it('should send pan in the request if pan is provided', async () => {
+    const pan = 'mockTokenid';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ pan });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual(createSessionResponse);
+
+    const requestBody = JSON.parse(fetchMockCalls[0][1].body);
+    expect(requestBody).toHaveProperty('pan', pan);
   });
 });

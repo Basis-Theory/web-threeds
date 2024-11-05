@@ -18,7 +18,12 @@ import { NotificationType, notify } from '~src/utils/events';
 import { handleCreateSession } from './handlers/handleCreateSession';
 import { isApiError, processApiError } from './utils/errors';
 export interface Create3dsSessionRequest {
-  pan: string;
+  tokenId?: string;
+  tokenIntentId?: string;
+  /**
+   * @deprecated This property is deprecated in favor of `tokenId`
+   */
+  pan?: string;
 }
 
 export type Create3dsSessionResponse = {
@@ -64,17 +69,30 @@ const submitMethodRequest = (
 };
 
 const makeSessionRequest = async ({
+  tokenId,
+  tokenIntentId,
   pan,
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
+  const providedParams = [pan, tokenId, tokenIntentId].filter(param => param !== undefined);
+  if (providedParams.length === 0) {
+      throw new Error('One of pan, tokenId, or tokenIntentId is required.');
+  }
+  if (providedParams.length > 1) {
+      throw new Error('Only one of pan, tokenId, or tokenIntentId should be provided.');
+  }
+
+  const sessionParamKey = pan ? 'pan' : tokenId ? 'tokenId' : 'tokenIntentId';
+  const sessionParamValue = pan || tokenId || tokenIntentId;
+
   const deviceInfo = getDeviceInfo();
 
   const response = await http.client(
     'POST',
     `/sessions`,
     camelCaseToSnakeCase({
-      pan,
+      [sessionParamKey]: sessionParamValue,
       device: 'browser',
       deviceInfo,
     })
@@ -123,8 +141,16 @@ const makeSessionRequest = async ({
   return session;
 };
 
-export const createSession = async ({ pan }: Create3dsSessionRequest) => {
-  const session = await makeSessionRequest({ pan }).catch((error) => {
+export const createSession = async ({
+  tokenId,
+  tokenIntentId,
+  pan,
+}: Create3dsSessionRequest) => {
+  const session = await makeSessionRequest({
+    tokenId,
+    tokenIntentId,
+    pan,
+  }).catch((error) => {
     return Promise.reject((error as Error).message);
   });
 
