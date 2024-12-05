@@ -100,7 +100,7 @@ jobs:
         uses: Basis-Theory/github-actions/deploy-slack-action@master
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
-          channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_DEPLOY_CHANNEL }}
+          channel: ${{ vars.SLACK_DUCKBOT_RELEASE_CHANNEL_ID }}
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v4
@@ -149,36 +149,16 @@ jobs:
           git commit -m "chore(release): $VERSION [skip ci]"
           git push origin HEAD:master
 
-      - name: Slack Deploy Alert
-        uses: 8398a7/action-slack@v3
-        if: failure()
-        with:
-          status: ${{ job.status }}
-          channel: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
-          fields: 'repo,commit,message,workflow,job'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   post-deploy:
     needs: build-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Slack Deploy / Release Alert
-        uses: 8398a7/action-slack@v3
-        if: always()
-        with:
-          status: ${{ job.status }}
-          channel: ${{ secrets.SLACK_RELEASE_CHANNEL_ID }}
-          fields: 'repo,commit,message,workflow,job'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
       - name: Stop Deploy Message
         if: always()
         uses: Basis-Theory/github-actions/deploy-slack-action@master
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
-          channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_DEPLOY_CHANNEL }}
+          channel: ${{ vars.SLACK_DUCKBOT_RELEASE_CHANNEL_ID }}
           status: 'done'
