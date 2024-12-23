@@ -24,6 +24,8 @@ export interface Create3dsSessionRequest {
    * @deprecated This property is deprecated in favor of `tokenId`
    */
   pan?: string;
+  skipMethodRequest?: boolean;
+  methodRequestMode?: 'iframe' | 'redirect';
 }
 
 export type Create3dsSessionResponse = {
@@ -31,6 +33,43 @@ export type Create3dsSessionResponse = {
   cardBrand?: string;
   method_url?: string;
   method_notification_url?: string;
+};
+
+const submitMethodRequestRedirect = (
+  threeDSMethodURL: string,
+  threeDSServerTransID: string,
+  methodNotificationURL?: string
+): void => {
+  const threeDSMethodDataBase64 = encode({
+    threeDSServerTransID,
+    threeDSMethodNotificationURL: `${methodNotificationURL}?mode=redirect`,
+  });
+
+  const newWindow = window.open('', 'threeDSMethodForm');
+  if (!newWindow) {
+    console.error('Popup blocked or unable to open the window.');
+    return;
+  }
+
+  const form = createForm(METHOD_REQUEST.FORM_NAME, threeDSMethodURL, 'threeDSMethodForm');
+  form.appendChild(createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64));
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+
+  // check periodically if method window is closed (it closes immediatelly on completion)
+  // TODO: potentially use a middleware page for additional control
+  const checkClosedInterval = window.setInterval(() => {
+    if (newWindow.closed) {
+      clearInterval(checkClosedInterval);
+      notify({
+        isCompleted: true,
+        id: threeDSServerTransID,
+        type: NotificationType.METHOD,
+      })
+    }
+  }, 500);
 };
 
 const submitMethodRequest = (
@@ -72,15 +111,21 @@ const makeSessionRequest = async ({
   tokenId,
   tokenIntentId,
   pan,
+  skipMethodRequest = false,
+  methodRequestMode = 'iframe',
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
-  const providedParams = [pan, tokenId, tokenIntentId].filter(param => param !== undefined);
+  const providedParams = [pan, tokenId, tokenIntentId].filter(
+    (param) => param !== undefined
+  );
   if (providedParams.length === 0) {
-      throw new Error('One of pan, tokenId, or tokenIntentId is required.');
+    throw new Error('One of pan, tokenId, or tokenIntentId is required.');
   }
   if (providedParams.length > 1) {
-      throw new Error('Only one of pan, tokenId, or tokenIntentId should be provided.');
+    throw new Error(
+      'Only one of pan, tokenId, or tokenIntentId should be provided.'
+    );
   }
 
   const sessionParamKey = pan ? 'pan' : tokenId ? 'tokenId' : 'tokenIntentId';
@@ -124,18 +169,26 @@ const makeSessionRequest = async ({
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
-  if (session.methodUrl) {
+  if (session.methodUrl && !skipMethodRequest) {
     notify({
       isCompleted: false,
       id: session.id,
       type: NotificationType.START_METHOD_TIME_OUT,
     });
 
-    submitMethodRequest(
-      session.methodUrl,
-      session.id,
-      session.methodNotificationUrl
-    );
+    if (methodRequestMode === 'redirect') {
+      submitMethodRequestRedirect(
+        session.methodUrl,
+        session.id,
+        session.methodNotificationUrl
+      );
+    } else {
+      submitMethodRequest(
+        session.methodUrl,
+        session.id,
+        session.methodNotificationUrl
+      );
+    }
   }
 
   return session;
@@ -145,17 +198,21 @@ export const createSession = async ({
   tokenId,
   tokenIntentId,
   pan,
+  skipMethodRequest = false,
+  methodRequestMode = 'iframe',
 }: Create3dsSessionRequest) => {
   const session = await makeSessionRequest({
     tokenId,
     tokenIntentId,
     pan,
+    skipMethodRequest,
+    methodRequestMode,
   }).catch((error) => {
     return Promise.reject((error as Error).message);
   });
 
   // skip message handling, no method request necessary
-  if (!session.methodUrl) {
+  if (!session.methodUrl || skipMethodRequest) {
     return {
       id: session.id,
       cardBrand: session.cardBrand,

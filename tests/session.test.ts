@@ -250,7 +250,7 @@ describe('createSession', () => {
     await expect(createSession({})).rejects.toEqual(
       'One of pan, tokenId, or tokenIntentId is required.'
     );
-  })
+  });
 
   /**
    * @deprecated `pan` has been deprecated in favor of tokenId
@@ -273,5 +273,83 @@ describe('createSession', () => {
 
     const requestBody = JSON.parse(fetchMockCalls[0][1].body);
     expect(requestBody).toHaveProperty('pan', pan);
+  });
+
+  it('should open a new window and poll for closure if methodUrl is available and methodMode=redirect', async () => {
+    window.HTMLFormElement.prototype.submit = jest.fn();
+
+    // mock open window reference
+    const mockPopup: Partial<Window> = { closed: false };
+    const mockWindowOpen = jest
+      .spyOn(window, 'open')
+      .mockImplementation(() => mockPopup as Window);
+
+    const versionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      methodUrl: 'mockMethodUrl',
+      methodNotificationUrl: 'http://test.com/notify',
+    };
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(versionResponse);
+    queueMock(createSessionResponse);
+
+    // change method mode to redirect
+    const sessionPromise = createSession({
+      tokenId: 'mockId',
+      methodRequestMode: 'redirect',
+    });
+
+    await resolvePendingPromises();
+
+    expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSMethodForm');
+    (mockPopup.closed as boolean) = true; // mock window closing
+
+    jest.runOnlyPendingTimers();
+    await resolvePendingPromises();
+
+    const session = await sessionPromise;
+    expect(session).toStrictEqual(createSessionResponse);
+
+    mockWindowOpen.mockRestore();
+  });
+
+  it('should skip 3DS method request if skipMethodRequest = true', async () => {
+    window.HTMLFormElement.prototype.submit = jest.fn();
+
+    createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID);
+
+    const versionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      methodUrl: 'mockMethodUrl',
+    };
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(versionResponse);
+    queueMock(createSessionResponse);
+
+    // set skipMethodRequest to true
+    const sessionPromise = createSession({
+      tokenId: 'mockId',
+      skipMethodRequest: true,
+    });
+
+    await resolvePendingPromises();
+
+    const session = await sessionPromise;
+
+    expect(session).toStrictEqual(createSessionResponse);
+
+    // assert no form submission happened
+    expect(window.HTMLFormElement.prototype.submit).not.toHaveBeenCalled();
   });
 });
