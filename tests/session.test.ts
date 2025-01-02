@@ -1,4 +1,4 @@
-import { METHOD_REQUEST } from '~src/constants';
+import { ACS_MODE, METHOD_REQUEST } from '~src/constants';
 import { createSession } from '~src/session';
 import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
@@ -301,16 +301,13 @@ describe('createSession', () => {
     // change method mode to redirect
     const sessionPromise = createSession({
       tokenId: 'mockId',
-      methodRequestMode: 'redirect',
+      methodRequestMode: ACS_MODE.REDIRECT,
     });
 
     await resolvePendingPromises();
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSMethodForm');
     (mockPopup.closed as boolean) = true; // mock window closing
-
-    jest.runOnlyPendingTimers();
-    await resolvePendingPromises();
 
     const session = await sessionPromise;
     expect(session).toStrictEqual(createSessionResponse);

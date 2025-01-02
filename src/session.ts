@@ -1,4 +1,4 @@
-import { METHOD_REQUEST } from '~src/constants';
+import { ACS_MODE, AcsMode, METHOD_REQUEST } from '~src/constants';
 import { getDeviceInfo } from '~src/utils/browser';
 import {
   createIframe,
@@ -25,7 +25,8 @@ export interface Create3dsSessionRequest {
    */
   pan?: string;
   skipMethodRequest?: boolean;
-  methodRequestMode?: 'iframe' | 'redirect';
+  methodRequestMode?: AcsMode;
+  challengeMode?: AcsMode;
 }
 
 export type Create3dsSessionResponse = {
@@ -56,7 +57,6 @@ const submitMethodRequestRedirect = (
 
   document.body.appendChild(form);
   form.submit();
-  document.body.removeChild(form);
 
   // check periodically if method window is closed (it closes immediatelly on completion)
   // TODO: potentially use a middleware page for additional control
@@ -112,7 +112,8 @@ const makeSessionRequest = async ({
   tokenIntentId,
   pan,
   skipMethodRequest = false,
-  methodRequestMode = 'iframe',
+  methodRequestMode,
+  challengeMode,
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
@@ -140,6 +141,7 @@ const makeSessionRequest = async ({
       [sessionParamKey]: sessionParamValue,
       device: 'browser',
       deviceInfo,
+      webChallengeMode: challengeMode,
     })
   );
 
@@ -176,7 +178,7 @@ const makeSessionRequest = async ({
       type: NotificationType.START_METHOD_TIME_OUT,
     });
 
-    if (methodRequestMode === 'redirect') {
+    if (methodRequestMode === ACS_MODE.REDIRECT) {
       submitMethodRequestRedirect(
         session.methodUrl,
         session.id,
@@ -199,7 +201,8 @@ export const createSession = async ({
   tokenIntentId,
   pan,
   skipMethodRequest = false,
-  methodRequestMode = 'iframe',
+  methodRequestMode = ACS_MODE.IFRAME,
+  challengeMode = ACS_MODE.IFRAME,
 }: Create3dsSessionRequest) => {
   const session = await makeSessionRequest({
     tokenId,
@@ -207,6 +210,7 @@ export const createSession = async ({
     pan,
     skipMethodRequest,
     methodRequestMode,
+    challengeMode
   }).catch((error) => {
     return Promise.reject((error as Error).message);
   });

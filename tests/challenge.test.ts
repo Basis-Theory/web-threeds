@@ -1,4 +1,4 @@
-import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
+import { ACS_MODE, CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
@@ -111,7 +111,9 @@ describe('startChallenge', () => {
 
     await resolvePendingPromises();
 
-    expect(response).rejects.toEqual('Timed out waiting for a challenge response. Please try again.');
+    expect(response).rejects.toEqual(
+      'Timed out waiting for a challenge response. Please try again.'
+    );
   }, 10001);
 
   it('should throw when CReq has invalid values', async () => {
@@ -128,5 +130,39 @@ describe('startChallenge', () => {
     expect(response).rejects.toEqual(
       `Invalid challenge request payload for session: ${222}`
     );
+  });
+
+  it('should open a new window and poll for closure if challenge mode === redirect', async () => {
+    window.HTMLFormElement.prototype.submit = jest.fn();
+    // mock open window reference
+    const mockPopup: Partial<Window> = { closed: false };
+    const mockWindowOpen = jest
+      .spyOn(window, 'open')
+      .mockImplementation(() => mockPopup as Window);
+
+    const sessionId = '444';
+
+    const startChallengeResponse = {
+      id: sessionId,
+    };
+
+    queueMock(startChallengeResponse);
+
+    const challengePromise = startChallenge({
+      sessionId: sessionId,
+      acsTransactionId: '1234',
+      acsChallengeUrl: 'http://localhost:5000/acs/test',
+      threeDSVersion: '2.1.0',
+      windowSize: '03',
+      mode: ACS_MODE.REDIRECT,
+    });
+
+    expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSChallenge', 'width=500px,height=600px');
+    (mockPopup.closed as boolean) = true; // mock window closing
+
+    const res = await challengePromise;
+    expect(res).toStrictEqual(startChallengeResponse);
+
+    mockWindowOpen.mockRestore();
   });
 });

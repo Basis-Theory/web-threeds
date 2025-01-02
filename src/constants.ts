@@ -9,8 +9,14 @@ export const CHALLENGE_REQUEST = {
   FRAME_CONTAINER_ID: 'challengeFrameContainer',
   IFRAME_NAME: 'challengeIframe',
   FORM_NAME: 'threeDSCReqForm',
-  INPUT_NAME: 'threeDSSessionData',
 };
+
+export const ACS_MODE  = {
+  IFRAME: 'iframe',
+  REDIRECT: 'redirect',
+}
+
+export type AcsMode = typeof ACS_MODE[keyof typeof ACS_MODE];
 
 export const BT_API_KEY_HEADER_NAME = 'BT-API-KEY';
 
