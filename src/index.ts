@@ -31,7 +31,9 @@ type ConfigOptions = {
 const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     try {
-      configureLogger(configOptions?.disableTelemetry ?? false);
+      configureLogger({
+        disableTelemetry: configOptions?.disableTelemetry ?? false
+      });
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
       createIframeContainer(
         configOptions?.challengeContainerOptions?.id ??
