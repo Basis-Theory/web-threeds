@@ -2,7 +2,7 @@ import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
 import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
-import { logger } from '~src/utils/logging';
+import { configureLogger, logger } from '~src/utils/logging';
 import { http } from '~src/utils/http';
 
 declare global {
@@ -16,7 +16,10 @@ type ConfigOptions = {
    * Allows customization of api base url
    */
   apiBaseUrl?: string;
-
+  /**
+   * Disables telemetry
+   */
+  disableTelemetry?: boolean;
   challengeContainerOptions?: {
     /**
      * Overrides default ID of iframe container
@@ -28,6 +31,7 @@ type ConfigOptions = {
 const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     try {
+      configureLogger(configOptions?.disableTelemetry ?? false);
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
       createIframeContainer(
         configOptions?.challengeContainerOptions?.id ??
