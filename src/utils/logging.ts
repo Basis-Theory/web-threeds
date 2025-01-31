@@ -1,6 +1,6 @@
 type AttributeMap = Record<string, string>;
 
-let disableTelemetry = true;
+let disableTelemetry = false;
 
 export const configureLogger = ({ disableTelemetry: disableTelemetryArg }: { disableTelemetry: boolean }) => {
   disableTelemetry = disableTelemetryArg;
