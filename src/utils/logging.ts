@@ -1,5 +1,11 @@
 type AttributeMap = Record<string, string>;
 
+let disableTelemetry = false;
+
+export const configureLogger = ({ disableTelemetry: disableTelemetryArg }: { disableTelemetry: boolean }) => {
+  disableTelemetry = disableTelemetryArg;
+};
+
 export const logger = (() => {
   const ddTok = 'pubb96b84a13912504f4354f2d794ea4fab';
 
@@ -9,6 +15,10 @@ export const logger = (() => {
     error?: Error,
     attributes: AttributeMap = {}
   ) => {
+    if (disableTelemetry) {
+      return;
+    }
+
     const payload = {
       application: '3ds-web',
       ddsource: '3ds-web',
