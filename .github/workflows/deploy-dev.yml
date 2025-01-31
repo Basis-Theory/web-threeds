@@ -10,6 +10,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    environment: DEV
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -40,8 +41,8 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
 
   build-release:
     runs-on: ${{ matrix.os }}
@@ -49,6 +50,7 @@ jobs:
       id-token: write
       contents: read
       actions: read
+    environment: DEV
     strategy:
       matrix:
         node: ['20.x']
@@ -63,7 +65,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.SEMANTIC_RELEASE_PAT }}
+          token: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
 
       - uses: AnimMouse/setup-rclone@v1
 
