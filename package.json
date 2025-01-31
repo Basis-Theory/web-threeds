@@ -1,7 +1,7 @@
 {
-  "name": "@basis-theory/3ds-web",
-  "version": "1.6.0",
-  "repository": "https://github.com/Basis-Theory/3ds-web",
+  "name": "@basis-theory/web-threeds",
+  "version": "0.0.0",
+  "repository": "https://github.com/Basis-Theory/web-threeds",
   "license": "Apache-2.0",
   "author": "Basis Theory <support@basistheory.com>",
   "source": "src/index.ts",
