@@ -1,10 +1,10 @@
-# 3DS-Web
+# `web-threeds`
 
 ## Overview
 
-The 3DS-Web SDK is a JavaScript/TypeScript library designed to simplify the implementation of 3DS (3D Secure) authentication processes in web applications. It provides a streamlined interface for handling both the session creation and challenge steps of the 3DS process.
+The web-threeds package is a JavaScript/TypeScript library designed to simplify the implementation of 3DS (3D Secure) authentication processes in web applications. It provides a streamlined interface for handling both the session creation and challenge steps of the 3DS process.
 
-The 3DS-Web SDK exposes two main methods: `createSession` and `startChallenge`. These methods facilitate the initiation and handling of 3DS sessions and challenges.
+The web-threeds package exposes two main methods: `createSession` and `startChallenge`. These methods facilitate the initiation and handling of 3DS sessions and challenges.
 
 ## Methods
 
