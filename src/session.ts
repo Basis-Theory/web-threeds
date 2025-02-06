@@ -1,11 +1,6 @@
-import { ACS_MODE, AcsMode, METHOD_REQUEST } from '~src/constants';
+import { ACS_MODE, AcsMode, METHOD_PAGE_PATH, METHOD_REQUEST } from '~src/constants';
 import { getDeviceInfo } from '~src/utils/browser';
-import {
-  createIframe,
-  createForm,
-  createInput,
-  createElement,
-} from '~src/utils/dom';
+import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
   DeepTransformKeysCase,
   camelCaseToSnakeCase,
@@ -17,6 +12,7 @@ import { logger } from '~src/utils/logging';
 import { NotificationType, notify } from '~src/utils/events';
 import { handleCreateSession } from './handlers/handleCreateSession';
 import { isApiError, processApiError } from './utils/errors';
+import { sdkBaseUrl } from '.';
 export interface Create3dsSessionRequest {
   tokenId?: string;
   tokenIntentId?: string;
@@ -25,6 +21,9 @@ export interface Create3dsSessionRequest {
    */
   pan?: string;
   skipMethodRequest?: boolean;
+  /**
+   * @deprecated This property is deprecated and will be removed in the next major version.
+   */
   methodRequestMode?: AcsMode;
   challengeMode?: AcsMode;
 }
@@ -36,6 +35,9 @@ export type Create3dsSessionResponse = {
   method_notification_url?: string;
 };
 
+/**
+ * @deprecated This function is deprecated and will be removed in the next major version.
+ */
 const submitMethodRequestRedirect = (
   threeDSMethodURL: string,
   threeDSServerTransID: string,
@@ -59,7 +61,6 @@ const submitMethodRequestRedirect = (
   form.submit();
 
   // check periodically if method window is closed (it closes immediatelly on completion)
-  // TODO: potentially use a middleware page for additional control
   const checkClosedInterval = window.setInterval(() => {
     if (newWindow.closed) {
       clearInterval(checkClosedInterval);
@@ -92,19 +93,18 @@ const submitMethodRequest = (
     '0'
   );
 
-  const form = createForm(
-    METHOD_REQUEST.FORM_NAME,
-    threeDSMethodURL,
-    iframe.name
-  );
+  iframe.src = `${sdkBaseUrl}/${METHOD_PAGE_PATH}`;
 
-  form.appendChild(
-    createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
-  );
-
-  iframe.appendChild(createElement('html', createElement('body', form)));
-
-  form.submit();
+  iframe.onload = () => {
+    iframe.contentWindow?.postMessage(
+      {
+        type: 'startMethod',
+        threeDSMethodURL,
+        threeDSMethodData: threeDSMethodDataBase64,
+      },
+      '*'
+    );
+  };
 };
 
 const makeSessionRequest = async ({
@@ -210,7 +210,7 @@ export const createSession = async ({
     pan,
     skipMethodRequest,
     methodRequestMode,
-    challengeMode
+    challengeMode,
   }).catch((error) => {
     return Promise.reject((error as Error).message);
   });

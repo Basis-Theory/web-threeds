@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Basis Theory 3DS Method Request</title>
+</head>
+
+<body>
+  <h1>Collecting Browser Data...</h1>
+  <p>If you are not redirected automatically, please click <a href="#" onclick="document.threeDSMethodForm.submit(); return false;">here</a>.</p>
+</body>
+
+<script>
+  let threeDSMethodURL = '';
+  let threeDSMethodData = '';
+
+  window.addEventListener('message', (event) => {
+    if (event.data.type === 'startMethod') {
+      threeDSMethodURL = event.data.threeDSMethodURL;
+      threeDSMethodData = event.data.threeDSMethodData;
+
+      if (!threeDSMethodURL || !threeDSMethodData) {
+        window.parent?.postMessage({
+          type: 'error',
+          details: 'threeDSMethodURL or threeDSMethodData missing in the message'
+        }, '*');
+      }
+
+      // iframe
+      const iframe = document.createElement('iframe');
+      iframe.name = 'acsMethodIframe';
+      iframe.id = 'acsSMethodIframe';
+      iframe.style.display = 'none';
+      iframe.width = '0';
+      iframe.height = '0';
+      iframe.frameBorder = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+
+      // method form
+      const form = document.createElement('form');
+      form.name = 'threeDSMethodForm';
+      form.action = threeDSMethodURL;
+      form.method = 'POST';
+      form.target = iframe.name;
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'threeDSMethodData';
+      input.value = threeDSMethodData;
+      form.appendChild(input);
+      document.body.appendChild(form);
+
+      // submit and catch event
+      form.submit();
+    } else if (event.data.type === 'method') {
+      // message coming from api notification, post back to parent
+      window.parent?.postMessage(event.data, '*');
+    }
+
+    // ignore other messages
+  });
+</script>
+
+</html>
