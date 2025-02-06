@@ -1,4 +1,5 @@
-import { ACS_MODE, AcsMode, CHALLENGE_REQUEST } from './constants';
+import { sdkBaseUrl } from '.';
+import { ACS_MODE, AcsMode, CHALLENGE_PAGE_PATH, CHALLENGE_REQUEST } from './constants';
 import { handleChallenge } from './handlers/handleChallenge';
 import { WindowSizeId, getWindowSizeById } from './utils/browser';
 import { createForm, createIframe, createInput } from './utils/dom';
@@ -21,6 +22,9 @@ type ThreeDSChallengeRequest = {
    */
   windowSize?: `${WindowSizeId}` | WindowSizeId;
   timeout?: number;
+  /**
+   * @deprecated This property is deprecated and will be removed in the next major version
+   */
   mode?: AcsMode;
 };
 interface AcsThreeDSChallengeRequest {
@@ -70,8 +74,6 @@ const submitChallengeRequest = (
   const creqBase64 = encode(creq);
   const challengeIframeName = CHALLENGE_REQUEST.IFRAME_NAME;
 
-  const html = document.createElement('html');
-  const body = document.createElement('body');
   const challengeIframe = createIframe(
     container,
     challengeIframeName,
@@ -79,21 +81,21 @@ const submitChallengeRequest = (
     windowSize[0],
     windowSize[1]
   );
-  const form = createForm(
-    CHALLENGE_REQUEST.FORM_NAME,
-    acsURL,
-    challengeIframe.name
-  );
-  const creqInput = createInput('creq', creqBase64);
 
-  form.appendChild(creqInput);
-  body.appendChild(form);
-  html.appendChild(body);
-  challengeIframe.appendChild(html);
+  challengeIframe.src = `${sdkBaseUrl}/${CHALLENGE_PAGE_PATH}`;
 
-  form.submit();
+  challengeIframe.onload = () => {
+    challengeIframe.contentWindow?.postMessage({
+      type: 'startChallenge',
+      acsURL,
+      creq: creqBase64,
+    }, '*');
+   }
 };
 
+/**
+ * @deprecated This method is deprecated and will be removed in the next major version
+ */
 const submitChallengeRequestRedirect = (
   acsURL: string,
   creq: AcsThreeDSChallengeRequest
@@ -125,7 +127,6 @@ const submitChallengeRequestRedirect = (
   form.submit();
 
   // check periodically if method window is closed (it closes immediatelly on completion)
-  // TODO: potentially use a middleware page for additional control
   const checkClosedInterval = window.setInterval(() => {
     if (newWindow.closed) {
       clearInterval(checkClosedInterval);

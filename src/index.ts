@@ -1,9 +1,15 @@
-import { CHALLENGE_REQUEST, METHOD_REQUEST } from '~src/constants';
+import {
+  CHALLENGE_REQUEST,
+  METHOD_REQUEST,
+  SDK_BASE_URL,
+} from '~src/constants';
 import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
 import { configureLogger, logger } from '~src/utils/logging';
 import { http } from '~src/utils/http';
+
+export let sdkBaseUrl = SDK_BASE_URL;
 
 declare global {
   interface Window {
@@ -16,6 +22,10 @@ type ConfigOptions = {
    * Allows customization of api base url
    */
   apiBaseUrl?: string;
+  /**
+   * Allows customization fo sdk base url (for static pages access)
+   */
+  sdkBaseUrl?: string;
   /**
    * Disables telemetry
    */
@@ -32,7 +42,7 @@ const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     try {
       configureLogger({
-        disableTelemetry: configOptions?.disableTelemetry ?? false
+        disableTelemetry: configOptions?.disableTelemetry ?? false,
       });
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
       createIframeContainer(
@@ -42,6 +52,8 @@ const BasisTheory3ds = (() => {
     } catch (error) {
       logger.log.error('Unable to create iframe container', error as Error);
     }
+
+    sdkBaseUrl = configOptions?.sdkBaseUrl ?? SDK_BASE_URL;
 
     http.init(apiKey, configOptions?.apiBaseUrl);
 
