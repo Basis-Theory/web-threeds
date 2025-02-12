@@ -26,6 +26,7 @@ type ThreeDSChallengeRequest = {
    * @deprecated This property is deprecated and will be removed in the next major version
    */
   mode?: AcsMode;
+  containerId?: string;
 };
 interface AcsThreeDSChallengeRequest {
   messageType: 'CReq'; // Must always be set to "CReq"
@@ -64,9 +65,10 @@ function isAcsThreeDSChallengeRequest(
 const submitChallengeRequest = (
   acsURL: string,
   creq: AcsThreeDSChallengeRequest,
+  containerId?: string
 ) => {
   const container = document.getElementById(
-    CHALLENGE_REQUEST.FRAME_CONTAINER_ID
+    containerId ?? CHALLENGE_REQUEST.FRAME_CONTAINER_ID
   );
 
   const windowSize = getWindowSizeById(creq.challengeWindowSize);
@@ -146,6 +148,7 @@ const makeChallengeRequest = ({
   threeDSVersion,
   windowSize,
   mode,
+  containerId,
 }: ThreeDSChallengeRequest): Promise<ThreeDSSession | Error> => {
   if (!sessionId) {
     throw new Error('Session ID is required');
@@ -163,7 +166,7 @@ const makeChallengeRequest = ({
     if (mode === ACS_MODE.REDIRECT) {
       submitChallengeRequestRedirect(acsChallengeUrl, creq);
     } else {
-      submitChallengeRequest(acsChallengeUrl, creq);
+      submitChallengeRequest(acsChallengeUrl, creq, containerId);
     }
   } else {
     const err = `Invalid challenge request payload for session: ${sessionId}`;
@@ -184,6 +187,7 @@ export const startChallenge = async ({
   windowSize,
   mode = 'iframe',
   timeout = 60000,
+  containerId,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({
     sessionId,
@@ -191,7 +195,8 @@ export const startChallenge = async ({
     acsChallengeUrl,
     threeDSVersion,
     windowSize,
-    mode
+    mode,
+    containerId
   }).catch((error) => {
     return Promise.reject((error as Error).message);
   });
