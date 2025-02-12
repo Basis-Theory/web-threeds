@@ -30,12 +30,6 @@ type ConfigOptions = {
    * Disables telemetry
    */
   disableTelemetry?: boolean;
-  challengeContainerOptions?: {
-    /**
-     * Overrides default ID of iframe container
-     */
-    id?: string;
-  };
 };
 
 const BasisTheory3ds = (() => {
@@ -45,10 +39,7 @@ const BasisTheory3ds = (() => {
         disableTelemetry: configOptions?.disableTelemetry ?? false,
       });
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
-      createIframeContainer(
-        configOptions?.challengeContainerOptions?.id ??
-          CHALLENGE_REQUEST.FRAME_CONTAINER_ID
-      );
+      createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
     } catch (error) {
       logger.log.error('Unable to create iframe container', error as Error);
     }
