@@ -25,46 +25,44 @@ export const handleCreateSession = (
 
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent<Notification>) => {
-      if (
-        isNotification(event.data) &&
-        event.data?.type === NotificationType.START_METHOD_TIME_OUT
-      ) {
-        timeout = setTimeout(() => {
-          notify({
+      if (isNotification(event.data)) {
+        if (event.data.type === NotificationType.ERROR) {
+          logger.log.error(`Error occurred during session creation: ${event?.data?.details}`);
+
+          reject(`An error occurred during session creation: ${event?.data?.details}`);
+          removeIframe(getIframeId(event.data?.type));
+          clearTimeout(timeout);
+        } else if (event.data.type === NotificationType.START_METHOD_TIME_OUT) {
+          timeout = setTimeout(() => {
+            notify({
+              id: event.data.id,
+              type: NotificationType.METHOD_TIME_OUT,
+              isCompleted: false,
+            });
+          }, 10000);
+        } else if (event.data.type === NotificationType.CHALLENGE) {
+          // discard challenge events
+        } else if (!event.isTrusted) {
+          // discard untrusted events
+        } else {
+          // handle session creation event
+          window.removeEventListener('message', handleMessage);
+
+          const toResponse = (
+            event: MessageEvent<Notification>
+          ): { id: string; cardBrand?: string } => ({
             id: event.data.id,
-            type: NotificationType.METHOD_TIME_OUT,
-            isCompleted: false,
+            cardBrand: session.cardBrand,
           });
-        }, 10000);
-      } else if (
-        isNotification(event.data) &&
-        event.data.type !== NotificationType.ERROR &&
-        event.data.type !== NotificationType.CHALLENGE
-      ) {
-        window.removeEventListener('message', handleMessage);
 
-        const toResponse = (
-          event: MessageEvent<Notification>
-        ): { id: string; cardBrand?: string } => ({
-          id: event.data.id,
-          cardBrand: session.cardBrand,
-        });
+          const response = toResponse(event);
 
-        const response = toResponse(event);
-
-        logger.log.info(
-          `${event.data.type} notification received for session: ${response.id}`
-        );
-
-        resolve(response);
-        removeIframe(getIframeId(event.data?.type));
-        clearTimeout(timeout);
-      } else if (!event.isTrusted) {
-        // discard untrusted events
+          resolve(response);
+          removeIframe(getIframeId(event.data?.type));
+          clearTimeout(timeout);
+        }
       } else {
-        reject('Something happened during session creation, please try again.');
-        removeIframe(getIframeId(event.data?.type));
-        clearTimeout(timeout);
+        // discard other events
       }
     };
 

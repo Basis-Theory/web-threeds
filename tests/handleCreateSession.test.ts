@@ -56,8 +56,5 @@ test.each([
 
     await expect(promise).resolves.toEqual(expectedResponse);
     expect(removeIframe).toHaveBeenCalledWith([iframeContainerId]);
-    expect(logger.log.info).toHaveBeenCalledWith(
-      `${notificationType} notification received for session: ${expectedResponse.id}`
-    );
   }
 );
