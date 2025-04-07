@@ -197,6 +197,49 @@ describe('createSession', () => {
     await expect(createSession({ tokenId })).rejects.toEqual('Unknown Error');
   });
 
+  it('should handle 3DS service errors with message and details', async () => {
+    const tokenId = 'mockId';
+
+    const errorResponse = {
+      title: '3DS Service Error',
+      status: 424,
+      detail: 'The 3DS service returned an error. See the \'error\' field for more details.',
+      error: {
+        serviceStatus: 'ERROR',
+        sessionId: '',
+        errorSource: 'ACS',
+        message: 'Authentication failed',
+        details: 'Cardholder authentication failed'
+      }
+    };
+
+    queueMock(errorResponse, false, 424);
+
+    await expect(createSession({ tokenId })).rejects.toEqual(
+      'Authentication failed - details: Cardholder authentication failed'
+    );
+  });
+
+  it('should handle 3DS service errors with only message', async () => {
+    const tokenId = 'mockId';
+
+    const errorResponse = {
+      title: '3DS Service Error',
+      status: 424,
+      detail: 'The 3DS service returned an error. See the \'error\' field for more details.',
+      error: {
+        serviceStatus: '401',
+        sessionId: '',
+        errorSource: 'Access Control Server',
+        message: 'Authentication failed'
+      }
+    };
+
+    queueMock(errorResponse, false, 424);
+
+    await expect(createSession({ tokenId })).rejects.toEqual('Authentication failed');
+  });
+
   it('should send tokenId in the request if tokenId is provided', async () => {
     const tokenId = 'mockTokenId';
 

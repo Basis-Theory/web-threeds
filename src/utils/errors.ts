@@ -12,6 +12,13 @@ type ApiError = {
   title?: string;
   status?: number;
   detail?: string;
+  error?: {
+    serviceStatus?: string;
+    sessionId?: string;
+    errorSource?: string;
+    message?: string;
+    details?: string;
+  };
 };
 
 type ValidationApiError = ApiError & {
@@ -43,6 +50,17 @@ const processApiError = (apiError: ApiError): never => {
         throw new Error(validationErrorMessagesMap[errorKey]);
       }
     }
+  } else if (apiError.status === 424 && apiError.error) {
+    // handle 3DS service error case
+    const errorParts = [];
+    if (apiError.error.message) errorParts.push(apiError.error.message);
+    if (apiError.error.details) errorParts.push('details: ' + apiError.error.details);
+
+    const errorMessage = errorParts.length > 0
+      ? errorParts.join(' - ')
+      : apiError.title || 'An unknown 3DS service error occurred';
+
+    throw new Error(errorMessage);
   } else {
     if (apiError.title && errorMessagesMap[apiError.title]) {
       throw new Error(errorMessagesMap[apiError.title]);
