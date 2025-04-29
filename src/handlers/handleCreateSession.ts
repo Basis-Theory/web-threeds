@@ -29,7 +29,7 @@ export const handleCreateSession = (
         if (event.data.type === NotificationType.ERROR) {
           logger.log.error(`Error occurred during session creation: ${event?.data?.details}`);
 
-          reject(`An error occurred during session creation: ${event?.data?.details}`);
+          reject(new Error(`An error occurred during session creation: ${event?.data?.details}`));
           removeIframe(getIframeId(event.data?.type));
           clearTimeout(timeout);
         } else if (event.data.type === NotificationType.START_METHOD_TIME_OUT) {
