@@ -140,7 +140,17 @@ describe('startChallenge', () => {
   it('should open a new window and send notification when challenge mode === redirect', async () => {
     window.HTMLFormElement.prototype.submit = jest.fn();
     // mock open window reference
-    const mockPopup: Partial<Window> = { closed: false };
+    const mockPopup: Partial<Window> = {
+      closed: false,
+      postMessage: jest.fn().mockImplementation((data) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data,
+            source: window
+          })
+        );
+      })
+    };
     const mockWindowOpen = jest
       .spyOn(window, 'open')
       .mockImplementation(() => mockPopup as Window);
@@ -169,16 +179,12 @@ describe('startChallenge', () => {
     await resolvePendingPromises();
 
     // simulate the popup window sending a notification
-    window.dispatchEvent(
-      new MessageEvent('message', {
-        data: {
-          isCompleted: true,
-          id: sessionId,
-          type: 'challenge',
-          authenticationStatus: 'successful'
-        }
-      })
-    );
+    (mockPopup.postMessage as jest.Mock)({
+      isCompleted: true,
+      id: sessionId,
+      type: 'challenge',
+      authenticationStatus: 'successful'
+    }, '*');
 
     const res = await challengePromise;
     expect(res).toStrictEqual(startChallengeResponse);
