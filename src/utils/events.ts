@@ -16,8 +16,6 @@ export type Notification = {
   details?: string;
   // for challenge notifications
   authenticationStatus?: string;
-  // reason for the authentication status
-  authenticationStatusReason?: string;
 };
 
 export const notify = (notification: Notification) =>
