@@ -113,7 +113,10 @@ describe('startChallenge', () => {
 
     await resolvePendingPromises();
 
-    expect(response).rejects.toThrow(
+    // advance timers to trigger timeout
+    jest.advanceTimersByTime(10000);
+
+    await expect(response).rejects.toThrow(
       new Error('Timed out waiting for a challenge response. Please try again.')
     );
   }, 10001);
@@ -134,7 +137,7 @@ describe('startChallenge', () => {
     );
   });
 
-  it('should open a new window and poll for closure if challenge mode === redirect', async () => {
+  it('should open a new window and send notification when challenge mode === redirect', async () => {
     window.HTMLFormElement.prototype.submit = jest.fn();
     // mock open window reference
     const mockPopup: Partial<Window> = { closed: false };
@@ -147,6 +150,7 @@ describe('startChallenge', () => {
     const startChallengeResponse = {
       id: sessionId,
       isCompleted: true,
+      authenticationStatus: 'successful',
     };
 
     queueMock(startChallengeResponse);
@@ -161,7 +165,20 @@ describe('startChallenge', () => {
     });
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSChallenge', 'width=500px,height=600px');
-    (mockPopup.closed as boolean) = true; // mock window closing
+
+    await resolvePendingPromises();
+
+    // simulate the popup window sending a notification
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          isCompleted: true,
+          id: sessionId,
+          type: 'challenge',
+          authenticationStatus: 'successful'
+        }
+      })
+    );
 
     const res = await challengePromise;
     expect(res).toStrictEqual(startChallengeResponse);
