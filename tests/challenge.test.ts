@@ -69,6 +69,8 @@ describe('startChallenge', () => {
 
     const startChallengeResponse = {
       id: sessionId,
+      isCompleted: true,
+      authenticationStatus: 'successful',
     };
 
     const response = startChallenge({
@@ -83,7 +85,7 @@ describe('startChallenge', () => {
 
     window.dispatchEvent(
       new MessageEvent('message', {
-        data: { isCompleted: true, id: sessionId, type: 'challenge' },
+        data: { isCompleted: true, id: sessionId, type: 'challenge', authenticationStatus: 'successful' },
       })
     );
 
@@ -111,8 +113,8 @@ describe('startChallenge', () => {
 
     await resolvePendingPromises();
 
-    expect(response).rejects.toEqual(
-      'Timed out waiting for a challenge response. Please try again.'
+    expect(response).rejects.toThrow(
+      new Error('Timed out waiting for a challenge response. Please try again.')
     );
   }, 10001);
 
@@ -144,6 +146,7 @@ describe('startChallenge', () => {
 
     const startChallengeResponse = {
       id: sessionId,
+      isCompleted: true,
     };
 
     queueMock(startChallengeResponse);
