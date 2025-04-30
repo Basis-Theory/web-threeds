@@ -25,7 +25,7 @@ test.each([
     `should resolve with response when receiving valid ${NotificationType.CHALLENGE} notification`,
     NotificationType.CHALLENGE,
     CHALLENGE_REQUEST.IFRAME_NAME,
-    { id: '1234' },
+    { id: '1234', isCompleted: true, authenticationStatus: 'successful' },
   ],
 ])(
   '%s',
@@ -41,6 +41,7 @@ test.each([
       isCompleted: true,
       type: notificationType,
       id: '1234',
+      authenticationStatus: 'successful',
     };
 
     // Dispatch the message

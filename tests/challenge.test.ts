@@ -69,6 +69,8 @@ describe('startChallenge', () => {
 
     const startChallengeResponse = {
       id: sessionId,
+      isCompleted: true,
+      authenticationStatus: 'successful',
     };
 
     const response = startChallenge({
@@ -83,7 +85,7 @@ describe('startChallenge', () => {
 
     window.dispatchEvent(
       new MessageEvent('message', {
-        data: { isCompleted: true, id: sessionId, type: 'challenge' },
+        data: { isCompleted: true, id: sessionId, type: 'challenge', authenticationStatus: 'successful' },
       })
     );
 
@@ -111,8 +113,11 @@ describe('startChallenge', () => {
 
     await resolvePendingPromises();
 
-    expect(response).rejects.toEqual(
-      'Timed out waiting for a challenge response. Please try again.'
+    // advance timers to trigger timeout
+    jest.advanceTimersByTime(10000);
+
+    await expect(response).rejects.toThrow(
+      new Error('Timed out waiting for a challenge response. Please try again.')
     );
   }, 10001);
 
@@ -132,10 +137,20 @@ describe('startChallenge', () => {
     );
   });
 
-  it('should open a new window and poll for closure if challenge mode === redirect', async () => {
+  it('should open a new window and send notification when challenge mode === redirect', async () => {
     window.HTMLFormElement.prototype.submit = jest.fn();
     // mock open window reference
-    const mockPopup: Partial<Window> = { closed: false };
+    const mockPopup: Partial<Window> = {
+      closed: false,
+      postMessage: jest.fn().mockImplementation((data) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data,
+            source: window
+          })
+        );
+      })
+    };
     const mockWindowOpen = jest
       .spyOn(window, 'open')
       .mockImplementation(() => mockPopup as Window);
@@ -144,6 +159,8 @@ describe('startChallenge', () => {
 
     const startChallengeResponse = {
       id: sessionId,
+      isCompleted: true,
+      authenticationStatus: 'successful',
     };
 
     queueMock(startChallengeResponse);
@@ -158,7 +175,16 @@ describe('startChallenge', () => {
     });
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSChallenge', 'width=500px,height=600px');
-    (mockPopup.closed as boolean) = true; // mock window closing
+
+    await resolvePendingPromises();
+
+    // simulate the popup window sending a notification
+    (mockPopup.postMessage as jest.Mock)({
+      isCompleted: true,
+      id: sessionId,
+      type: 'challenge',
+      authenticationStatus: 'successful'
+    }, '*');
 
     const res = await challengePromise;
     expect(res).toStrictEqual(startChallengeResponse);

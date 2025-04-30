@@ -5,7 +5,6 @@ import { WindowSizeId, getWindowSizeById } from './utils/browser';
 import { createForm, createIframe, createInput } from './utils/dom';
 import { encode } from './utils/encoding';
 import { logger } from './utils/logging';
-import { NotificationType, notify } from '~src/utils/events';
 
 type ThreeDSChallengeRequest = {
   acsChallengeUrl: string;
@@ -110,8 +109,7 @@ const submitChallengeRequestRedirect = (
   );
 
   if (!newWindow) {
-    console.error('Popup blocked or unable to open the window.');
-    return;
+    throw new Error('Popup blocked or unable to open the window.');
   }
 
   const creqBase64 = encode(creq);
@@ -127,18 +125,6 @@ const submitChallengeRequestRedirect = (
 
   document.body.appendChild(form);
   form.submit();
-
-  // check periodically if method window is closed (it closes immediatelly on completion)
-  const checkClosedInterval = window.setInterval(() => {
-    if (newWindow.closed) {
-      clearInterval(checkClosedInterval);
-      notify({
-        isCompleted: true,
-        id: creq.threeDSServerTransID,
-        type: NotificationType.CHALLENGE,
-      });
-    }
-  }, 500);
 };
 
 const makeChallengeRequest = ({

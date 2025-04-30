@@ -12,32 +12,40 @@ export const handleChallenge = (timeout: number = 60000): Promise<{ id: string }
 
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent<Notification>) => {
-      if (
-        isNotification(event.data) &&
-        event.data.type === NotificationType.CHALLENGE
-      ) {
-        clearTimeout(timeoutId);
-        window.removeEventListener('message', handleMessage);
+      if (isNotification(event.data)) {
+        if (event.data.type === NotificationType.ERROR) {
+          logger.log.error(`Error occurred during challenge: ${event?.data?.details}`);
 
-        const toResponse = (
-          event: MessageEvent<Notification>
-        ): { id: string } => ({
-          id: event.data.id,
-        });
+          reject(new Error(`An error occurred during challenge: ${event?.data?.details}`));
 
-        const response = toResponse(event);
+          removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+          clearTimeout(timeout);
+        } else if (event.data.type === NotificationType.CHALLENGE) {
+          clearTimeout(timeoutId);
+          window.removeEventListener('message', handleMessage);
 
-        logger.log.info(
-          `${event.data.type} notification received for session: ${response.id}`
-        );
+          const toResponse = (
+            event: MessageEvent<Notification>
+          ): { id: string, isCompleted?: boolean, authenticationStatus?: string } => ({
+            id: event.data.id,
+            isCompleted: event.data.isCompleted,
+            authenticationStatus: event.data.authenticationStatus,
+          });
 
-        resolve(response);
-        removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+          const response = toResponse(event);
 
-      } else if (!event.isTrusted) {
-        // discard untrusted events
-      } else {
-        // ignore other trusted messages
+          logger.log.info(
+            `${event.data.type} notification received for session: ${response.id}`
+          );
+
+          resolve(response);
+          removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+
+        } else if (!event.isTrusted) {
+          // discard untrusted events
+        } else {
+          // ignore other trusted messages
+        }
       }
     };
 
@@ -46,7 +54,7 @@ export const handleChallenge = (timeout: number = 60000): Promise<{ id: string }
     timeoutId = setTimeout(() => {
       window.removeEventListener('message', handleMessage);
 
-      reject('Timed out waiting for a challenge response. Please try again.');
+      reject(new Error('Timed out waiting for a challenge response. Please try again.'));
 
       removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
     }, timeout);
