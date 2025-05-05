@@ -11,13 +11,15 @@ type TransformKeyCase<
 
 export type DeepTransformKeysCase<T, Case extends 'camel' | 'snake'> = T extends string
   ? TransformKeyCase<T, Case>
-  : T extends object
-    ? {
-        [K in keyof T as K extends string
-          ? TransformKeyCase<K, Case>
-          : K]: DeepTransformKeysCase<T[K], Case>;
-      }
-    : T;
+  : T extends readonly unknown[]
+    ? T
+    : T extends object
+      ? {
+          [K in keyof T as K extends string
+            ? TransformKeyCase<K, Case>
+            : K]: DeepTransformKeysCase<T[K], Case>;
+        }
+      : T;
 
 const convertCasing = <T>(
   obj: unknown,

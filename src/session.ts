@@ -33,6 +33,7 @@ export type Create3dsSessionResponse = {
   cardBrand?: string;
   method_url?: string;
   method_notification_url?: string;
+  additional_card_brands?: string[];
 };
 
 /**
@@ -217,10 +218,16 @@ export const createSession = async ({
 
   // skip message handling, no method request necessary
   if (!session.methodUrl || skipMethodRequest) {
-    return {
+    const response: { id: string; cardBrand?: string; additionalCardBrands?: string[] } = {
       id: session.id,
       cardBrand: session.cardBrand,
     };
+
+    if (session.additionalCardBrands) {
+      response.additionalCardBrands = session.additionalCardBrands;
+    }
+
+    return response;
   }
 
   return await handleCreateSession(session);

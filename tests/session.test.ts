@@ -392,4 +392,26 @@ describe('createSession', () => {
     // assert no form submission happened
     expect(window.HTMLFormElement.prototype.submit).not.toHaveBeenCalled();
   });
+
+  it('should handle session response with additional card brands', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      additional_card_brands: ['visa', 'cartes bancaires'],
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ tokenId: tokenId });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual({
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      additionalCardBrands: ['visa', 'cartes bancaires'],
+    });
+  });
 });

@@ -20,7 +20,7 @@ const getIframeId = (type: NotificationType): string[] =>
 
 export const handleCreateSession = (
   session: Create3dsSessionResponse
-): Promise<{ id: string; cardBrand?: string }> => {
+): Promise<{ id: string; cardBrand?: string; additionalCardBrands?: string[] }> => {
   let timeout: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
@@ -50,10 +50,18 @@ export const handleCreateSession = (
 
           const toResponse = (
             event: MessageEvent<Notification>
-          ): { id: string; cardBrand?: string } => ({
-            id: event.data.id,
-            cardBrand: session.cardBrand,
-          });
+          ): { id: string; cardBrand?: string; additionalCardBrands?: string[] } => {
+            const response: { id: string; cardBrand?: string; additionalCardBrands?: string[] } = {
+              id: event.data.id,
+              cardBrand: session.cardBrand,
+            };
+
+            if (session.additional_card_brands) {
+              response.additionalCardBrands = session.additional_card_brands;
+            }
+
+            return response;
+          };
 
           const response = toResponse(event);
 
