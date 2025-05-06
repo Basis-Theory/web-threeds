@@ -8,6 +8,7 @@ import {
   notify,
 } from '~src/utils/events';
 import { logger } from '~src/utils/logging';
+import { snakeCaseToCamelCase } from '~src/utils/casing';
 
 const getIframeId = (type: NotificationType): string[] =>
   ({
@@ -51,13 +52,14 @@ export const handleCreateSession = (
           const toResponse = (
             event: MessageEvent<Notification>
           ): { id: string; cardBrand?: string; additionalCardBrands?: string[] } => {
+            const transformedSession = snakeCaseToCamelCase(session);
             const response: { id: string; cardBrand?: string; additionalCardBrands?: string[] } = {
               id: event.data.id,
-              cardBrand: session.cardBrand,
+              cardBrand: transformedSession.cardBrand,
             };
 
-            if (session.additional_card_brands) {
-              response.additionalCardBrands = session.additional_card_brands;
+            if (transformedSession.additionalCardBrands) {
+              response.additionalCardBrands = transformedSession.additionalCardBrands;
             }
 
             return response;
