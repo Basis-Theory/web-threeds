@@ -42,7 +42,7 @@ test.each([
     iframeContainerId,
     expectedResponse
   ) => {
-    const mockSession = ({ id: '123', cardBrand: 'visa' });
+    const mockSession = ({ id: '1234', cardBrand: 'visa' });
 
     const promise = handleCreateSession(mockSession);
 
