@@ -7,7 +7,7 @@ import {
 } from '~src/utils/events';
 import { logger } from '~src/utils/logging';
 
-export const handleChallenge = (timeout: number = 60000): Promise<{ id: string }> => {
+export const handleChallenge = (timeout: number = 60000): Promise<{ id: string, isCompleted?: boolean, authenticationStatus?: string }> => {
   let timeoutId: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
