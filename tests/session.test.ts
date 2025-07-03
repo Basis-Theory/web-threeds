@@ -86,6 +86,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -125,6 +126,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -336,6 +338,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -366,6 +369,7 @@ describe('createSession', () => {
     const versionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
       methodUrl: 'mockMethodUrl',
     };
 
@@ -399,6 +403,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
       additional_card_brands: ['visa', 'cartes bancaires'],
     };
 

@@ -21,7 +21,7 @@ const getIframeId = (type: NotificationType): string[] =>
 
 export const handleCreateSession = (
   session: Create3dsSessionResponse
-): Promise<{ id: string; cardBrand?: string; additionalCardBrands?: string[] }> => {
+): Promise<{ id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] }> => {
   let timeout: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
@@ -51,11 +51,12 @@ export const handleCreateSession = (
 
           const toResponse = (
             event: MessageEvent<Notification>
-          ): { id: string; cardBrand?: string; additionalCardBrands?: string[] } => {
+          ): { id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] } => {
             const transformedSession = snakeCaseToCamelCase(session);
-            const response: { id: string; cardBrand?: string; additionalCardBrands?: string[] } = {
+            const response: { id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] } = {
               id: event.data.id,
               cardBrand: transformedSession.cardBrand,
+              correlationId: transformedSession.correlationId,
             };
 
             if (transformedSession.additionalCardBrands) {

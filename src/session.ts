@@ -1,4 +1,4 @@
-import { ACS_MODE, AcsMode, METHOD_PAGE_PATH, METHOD_REQUEST } from '~src/constants';
+import { ACS_MODE, AcsMode, METHOD_PAGE_PATH, METHOD_REQUEST, BT_CORRELATION_ID_HEADER_NAME } from '~src/constants';
 import { getDeviceInfo } from '~src/utils/browser';
 import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
@@ -16,6 +16,7 @@ import { sdkBaseUrl } from '.';
 export interface Create3dsSessionRequest {
   tokenId?: string;
   tokenIntentId?: string;
+  correlationId?: string;
   /**
    * @deprecated This property is deprecated in favor of `tokenId`
    */
@@ -34,6 +35,7 @@ export type Create3dsSessionResponse = {
   method_url?: string;
   method_notification_url?: string;
   additional_card_brands?: string[];
+  correlationId: string;
 };
 
 /**
@@ -115,6 +117,7 @@ const makeSessionRequest = async ({
   skipMethodRequest = false,
   methodRequestMode,
   challengeMode,
+  correlationId,
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
@@ -143,7 +146,8 @@ const makeSessionRequest = async ({
       device: 'browser',
       deviceInfo,
       webChallengeMode: challengeMode,
-    })
+    }),
+    correlationId
   );
 
   if (!response.ok) {
@@ -169,6 +173,8 @@ const makeSessionRequest = async ({
   const session = snakeCaseToCamelCase<Create3dsSessionResponse>(
     (await response.json()) as Create3dsSessionResponse
   );
+
+  session.correlationId = response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
@@ -204,6 +210,7 @@ export const createSession = async ({
   skipMethodRequest = false,
   methodRequestMode = ACS_MODE.IFRAME,
   challengeMode = ACS_MODE.IFRAME,
+  correlationId = '',
 }: Create3dsSessionRequest) => {
   const session = await makeSessionRequest({
     tokenId,
@@ -212,6 +219,7 @@ export const createSession = async ({
     skipMethodRequest,
     methodRequestMode,
     challengeMode,
+    correlationId,
   }).catch((error) => {
     return Promise.reject((error as Error).message);
   });

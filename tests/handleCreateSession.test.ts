@@ -25,13 +25,13 @@ test.each([
     `should resolve with response when receiving valid ${NotificationType.METHOD} notification`,
     NotificationType.METHOD,
     METHOD_REQUEST.IFRAME_NAME,
-    { id: '1234', cardBrand: 'visa' },
+    { id: '1234', cardBrand: 'visa', correlationId: '' },
   ],
   [
     `should resolve with response when receiving valid ${NotificationType.METHOD_TIME_OUT} notification`,
     NotificationType.METHOD_TIME_OUT,
     METHOD_REQUEST.IFRAME_NAME,
-    { id: '1234', cardBrand: 'visa' },
+    { id: '1234', cardBrand: 'visa', correlationId: '' },
   ],
   ,
 ])(
@@ -42,7 +42,7 @@ test.each([
     iframeContainerId,
     expectedResponse
   ) => {
-    const mockSession = ({ id: '1234', cardBrand: 'visa' });
+    const mockSession = ({ id: '1234', cardBrand: 'visa', correlationId: '' });
 
     const promise = handleCreateSession(mockSession);
 
