@@ -20,6 +20,8 @@ export type AcsMode = typeof ACS_MODE[keyof typeof ACS_MODE];
 
 export const BT_API_KEY_HEADER_NAME = 'BT-API-KEY';
 
+export const BT_CORRELATION_ID_HEADER_NAME = 'BT-TRACE-ID';
+
 export const API_BASE_URL = 'https://api.basistheory.com';
 
 export const SDK_BASE_URL = 'https://3ds.basistheory.com';
