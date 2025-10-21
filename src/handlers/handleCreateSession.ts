@@ -21,16 +21,27 @@ const getIframeId = (type: NotificationType): string[] =>
 
 export const handleCreateSession = (
   session: Create3dsSessionResponse
-): Promise<{ id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] }> => {
+): Promise<{
+  id: string;
+  correlationId: string;
+  cardBrand?: string;
+  additionalCardBrands?: string[];
+}> => {
   let timeout: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent<Notification>) => {
       if (isNotification(event.data)) {
         if (event.data.type === NotificationType.ERROR) {
-          logger.log.error(`Error occurred during session creation: ${event?.data?.details}`);
+          logger.log.error(
+            `Error occurred during session creation: ${event?.data?.details}`
+          );
 
-          reject(new Error(`An error occurred during session creation: ${event?.data?.details}`));
+          reject(
+            new Error(
+              `An error occurred during session creation: ${event?.data?.details}`
+            )
+          );
           removeIframe(getIframeId(event.data?.type));
           clearTimeout(timeout);
         } else if (event.data.type === NotificationType.START_METHOD_TIME_OUT) {
@@ -51,16 +62,27 @@ export const handleCreateSession = (
 
           const toResponse = (
             event: MessageEvent<Notification>
-          ): { id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] } => {
+          ): {
+            id: string;
+            correlationId: string;
+            cardBrand?: string;
+            additionalCardBrands?: string[];
+          } => {
             const transformedSession = snakeCaseToCamelCase(session);
-            const response: { id: string; correlationId: string; cardBrand?: string; additionalCardBrands?: string[] } = {
+            const response: {
+              id: string;
+              correlationId: string;
+              cardBrand?: string;
+              additionalCardBrands?: string[];
+            } = {
               id: event.data.id,
               cardBrand: transformedSession.cardBrand,
               correlationId: transformedSession.correlationId,
             };
 
             if (transformedSession.additionalCardBrands) {
-              response.additionalCardBrands = transformedSession.additionalCardBrands;
+              response.additionalCardBrands =
+                transformedSession.additionalCardBrands;
             }
 
             return response;

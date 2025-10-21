@@ -7,16 +7,28 @@ import {
 } from '~src/utils/events';
 import { logger } from '~src/utils/logging';
 
-export const handleChallenge = (timeout: number = 60000): Promise<{ id: string, isCompleted?: boolean, authenticationStatus?: string }> => {
+export const handleChallenge = (
+  timeout: number = 60000
+): Promise<{
+  id: string;
+  isCompleted?: boolean;
+  authenticationStatus?: string;
+}> => {
   let timeoutId: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent<Notification>) => {
       if (isNotification(event.data)) {
         if (event.data.type === NotificationType.ERROR) {
-          logger.log.error(`Error occurred during challenge: ${event?.data?.details}`);
+          logger.log.error(
+            `Error occurred during challenge: ${event?.data?.details}`
+          );
 
-          reject(new Error(`An error occurred during challenge: ${event?.data?.details}`));
+          reject(
+            new Error(
+              `An error occurred during challenge: ${event?.data?.details}`
+            )
+          );
 
           removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
           clearTimeout(timeout);
@@ -26,7 +38,11 @@ export const handleChallenge = (timeout: number = 60000): Promise<{ id: string, 
 
           const toResponse = (
             event: MessageEvent<Notification>
-          ): { id: string, isCompleted?: boolean, authenticationStatus?: string } => ({
+          ): {
+            id: string;
+            isCompleted?: boolean;
+            authenticationStatus?: string;
+          } => ({
             id: event.data.id,
             isCompleted: event.data.isCompleted,
             authenticationStatus: event.data.authenticationStatus,
@@ -40,7 +56,6 @@ export const handleChallenge = (timeout: number = 60000): Promise<{ id: string, 
 
           resolve(response);
           removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
-
         } else if (!event.isTrusted) {
           // discard untrusted events
         } else {
@@ -54,7 +69,11 @@ export const handleChallenge = (timeout: number = 60000): Promise<{ id: string, 
     timeoutId = setTimeout(() => {
       window.removeEventListener('message', handleMessage);
 
-      reject(new Error('Timed out waiting for a challenge response. Please try again.'));
+      reject(
+        new Error(
+          'Timed out waiting for a challenge response. Please try again.'
+        )
+      );
 
       removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
     }, timeout);

@@ -28,12 +28,13 @@ const stringifyValue = <T>(val: T): string => {
   return JSON.stringify(val);
 };
 
-
 export const getColorDepth = () => {
   const validColorDepths = [1, 4, 8, 15, 16, 24, 32, 48];
 
   const actualColorDepth = window.screen.colorDepth;
-  const possibleValues = validColorDepths.filter((val) => val <= actualColorDepth);
+  const possibleValues = validColorDepths.filter(
+    (val) => val <= actualColorDepth
+  );
 
   if (possibleValues.length === 0) return validColorDepths[0];
 

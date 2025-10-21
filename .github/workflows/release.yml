@@ -14,7 +14,7 @@ jobs:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVAL_CHANNEL }}
           mention-person: ${{ vars.SLACK_DUCKBOT_PRODUCT_APPROVER }}
-          status: 'request'
+          status: "request"
 
   terraform-prod:
     environment: PROD
@@ -23,46 +23,46 @@ jobs:
       id-token: write
       contents: read
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-    - uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_wrapper: false
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
-    - name: Configure AWS Actions Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
-        aws-region: us-east-2
+      - name: Configure AWS Actions Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
+          aws-region: us-east-2
 
-    - name: Configure AWS Terraform Credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
-        aws-region: us-east-2
-        role-chaining: true
-        
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-         terraform_version: 1.5.6
+      - name: Configure AWS Terraform Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
+          aws-region: us-east-2
+          role-chaining: true
 
-    - name: Terraform Init
-      id: init
-      run: terraform init -backend-config=prod.tfbackend
-      working-directory: terraform/
-      continue-on-error: false
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.6
 
-    - name: Terraform Apply Prod
-      id: plan
-      run: terraform apply -auto-approve
-      working-directory: terraform/
-      continue-on-error: false
-      env:
-        TF_VAR_env: prod
-        TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-        TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=prod.tfbackend
+        working-directory: terraform/
+        continue-on-error: false
+
+      - name: Terraform Apply Prod
+        id: plan
+        run: terraform apply -auto-approve
+        working-directory: terraform/
+        continue-on-error: false
+        env:
+          TF_VAR_env: prod
+          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
 
   build-release:
     runs-on: ${{ matrix.os }}
@@ -73,12 +73,11 @@ jobs:
     environment: PROD
     strategy:
       matrix:
-        node: ['20.x']
+        node: ["20.x"]
         os: [ubuntu-latest]
     env:
       CI: 1
       HUSKY: 0 # disables husky hooks
-      NPM_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
     needs:
       - terraform-prod
     steps:
@@ -112,10 +111,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          registry-url: 'https://registry.npmjs.org'
-          always-auth: true
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update npm for Trusted Publishing
+        run: npm install -g npm@latest
 
       - name: Install Deps (with cache)
         uses: bahmutov/npm-install@v1
@@ -134,7 +133,6 @@ jobs:
         run: yarn publish --access public
         env:
           ENVIRONMENT: prod
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
 
       - name: Deploy CDN Bundle to Prod
         run: make upload-bundle
@@ -167,4 +165,4 @@ jobs:
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_RELEASE_CHANNEL_ID }}
-          status: 'done'
+          status: "done"
