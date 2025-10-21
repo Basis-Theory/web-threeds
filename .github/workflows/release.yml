@@ -130,7 +130,7 @@ jobs:
           SKIP_INSTALL: 1 # install with cache was done already
 
       - name: Publish Package to NPM
-        run: yarn publish --access public
+        run: npm publish --access public
         env:
           ENVIRONMENT: prod
 
