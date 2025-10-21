@@ -11,12 +11,12 @@ export const CHALLENGE_REQUEST = {
   FORM_NAME: 'threeDSCReqForm',
 };
 
-export const ACS_MODE  = {
+export const ACS_MODE = {
   IFRAME: 'iframe',
   REDIRECT: 'redirect',
-}
+};
 
-export type AcsMode = typeof ACS_MODE[keyof typeof ACS_MODE];
+export type AcsMode = (typeof ACS_MODE)[keyof typeof ACS_MODE];
 
 export const BT_API_KEY_HEADER_NAME = 'BT-API-KEY';
 

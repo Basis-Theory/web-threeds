@@ -1,4 +1,10 @@
-import { ACS_MODE, AcsMode, METHOD_PAGE_PATH, METHOD_REQUEST, BT_CORRELATION_ID_HEADER_NAME } from '~src/constants';
+import {
+  ACS_MODE,
+  AcsMode,
+  METHOD_PAGE_PATH,
+  METHOD_REQUEST,
+  BT_CORRELATION_ID_HEADER_NAME,
+} from '~src/constants';
 import { getDeviceInfo } from '~src/utils/browser';
 import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
@@ -57,8 +63,14 @@ const submitMethodRequestRedirect = (
     return;
   }
 
-  const form = createForm(METHOD_REQUEST.FORM_NAME, threeDSMethodURL, 'threeDSMethodForm');
-  form.appendChild(createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64));
+  const form = createForm(
+    METHOD_REQUEST.FORM_NAME,
+    threeDSMethodURL,
+    'threeDSMethodForm'
+  );
+  form.appendChild(
+    createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
+  );
 
   document.body.appendChild(form);
   form.submit();
@@ -71,7 +83,7 @@ const submitMethodRequestRedirect = (
         isCompleted: true,
         id: threeDSServerTransID,
         type: NotificationType.METHOD,
-      })
+      });
     }
   }, 500);
 };
@@ -174,7 +186,8 @@ const makeSessionRequest = async ({
     (await response.json()) as Create3dsSessionResponse
   );
 
-  session.correlationId = response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
+  session.correlationId =
+    response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
 
   logger.log.info(`3DS session response received with ID ${session.id}`);
 
@@ -226,7 +239,11 @@ export const createSession = async ({
 
   // skip message handling, no method request necessary
   if (!session.methodUrl || skipMethodRequest) {
-    const response: { id: string; cardBrand?: string; additionalCardBrands?: string[] } = {
+    const response: {
+      id: string;
+      cardBrand?: string;
+      additionalCardBrands?: string[];
+    } = {
       id: session.id,
       cardBrand: session.cardBrand,
     };
