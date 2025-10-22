@@ -56,10 +56,10 @@ jobs:
   build-release:
     runs-on: ${{ matrix.os }}
     permissions:
-      id-token: write
+      id-token: write # Required for OIDC trusted publishing to npm
       contents: read
       actions: read
-    environment: PROD
+    environment: PROD # Must match npm trusted publisher config exactly (case-sensitive)
     strategy:
       matrix:
         node: ["20.x"]
@@ -100,10 +100,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          registry-url: "https://registry.npmjs.org"
+          # registry-url is intentionally NOT set - it creates .npmrc that blocks OIDC
 
       - name: Update npm for Trusted Publishing
-        run: npm install -g npm@latest
+        run: npm install -g npm@latest # Requires npm 11.5.1+ for OIDC support
 
       - name: Install Deps (with cache)
         uses: bahmutov/npm-install@v1
@@ -121,13 +121,13 @@ jobs:
       - name: Publish Package to NPM
         run: npm publish --access public
         env:
-          ENVIRONMENT: prod
+          ENVIRONMENT: prod # Used by scripts; lowercase = r2:prod-3ds bucket
 
       - name: Deploy CDN Bundle to Prod
         run: make upload-bundle
         env:
           CLOUDFLARE: true
-          ENVIRONMENT: prod
+          ENVIRONMENT: prod # Used by uploadbundle.sh for R2 bucket naming (prod-3ds)
           GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
           R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
           R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}

@@ -58,14 +58,13 @@ jobs:
     environment: DEV
     strategy:
       matrix:
-        node: ['20.x']
+        node: ["20.x"]
         os: [ubuntu-latest]
     env:
       CI: 1
       HUSKY: 0 # disables husky hooks
-      NPM_TOKEN: ${{ secrets.NPM_RELEASE_TOKEN }}
     needs:
-      -  terraform-dev
+      - terraform-dev
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -91,6 +90,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+          # registry-url not needed - no npm publishing in dev workflow
 
       - name: Install Deps (with cache)
         uses: bahmutov/npm-install@v1
@@ -117,7 +117,7 @@ jobs:
         env:
           BLOB: true
           CLOUDFLARE: true
-          ENVIRONMENT: dev
+          ENVIRONMENT: dev # Used by uploadbundle.sh for R2 bucket naming (dev-3ds)
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
           R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
           R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}
@@ -129,7 +129,7 @@ jobs:
       - terraform-dev
     strategy:
       matrix:
-        node: [ '20.x' ]
+        node: ["20.x"]
     steps:
       - name: Version and Tag
         id: version-and-tag
@@ -174,4 +174,4 @@ jobs:
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_DEV_DEPLOY_CHANNEL_ID }}
-          status: 'done'
+          status: "done"
