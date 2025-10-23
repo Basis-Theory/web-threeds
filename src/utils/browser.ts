@@ -41,11 +41,18 @@ export const getColorDepth = () => {
   return Math.max(...possibleValues);
 };
 
+/**
+ * Trims browser language code to include only language and region.
+ * Handles cases like 'en-GB-oxendict' and returns 'en-GB'.
+ * Also handles simple language codes like 'en' which are returned as-is.
+ */
+export const trimLanguageCode = (c: string) => c?.split("-").slice(0, 2).join("-");
+
 export const getDeviceInfo = (): ThreeDSDeviceInfo => ({
   browserColorDepth: stringifyValue(getColorDepth()),
   browserJavascriptEnabled: true,
   browserJavaEnabled: window.navigator.javaEnabled(),
-  browserLanguage: window.navigator.language,
+  browserLanguage: trimLanguageCode(window.navigator.language),
   browserScreenHeight: stringifyValue(window.screen.height),
   browserScreenWidth: stringifyValue(window.screen.width),
   browserTZ: stringifyValue(new Date().getTimezoneOffset()),
