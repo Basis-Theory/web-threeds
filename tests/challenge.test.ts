@@ -132,7 +132,7 @@ describe('startChallenge', () => {
       windowSize: '10' as WindowSizeId,
     });
 
-    expect(response).rejects.toEqual(
+    await expect(response).rejects.toThrow(
       `Invalid challenge request payload for session: ${222}`
     );
   });

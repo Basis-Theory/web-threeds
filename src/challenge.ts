@@ -191,9 +191,9 @@ export const startChallenge = async ({
     windowSize,
     mode,
     containerId,
-  }).catch((error) => {
-    return Promise.reject((error as Error).message);
   });
+  // If makeChallengeRequest succeeds, continue with challenge
+  // If it fails, the error will propagate automatically
 
   return handleChallenge(timeout);
 };
