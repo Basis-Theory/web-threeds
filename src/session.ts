@@ -234,7 +234,8 @@ export const createSession = async ({
     challengeMode,
     correlationId,
   }).catch((error) => {
-    return Promise.reject((error as Error).message);
+    // Preserve the full error object (BasisTheory3dsError or other Error types)
+    return Promise.reject(error);
   });
 
   // skip message handling, no method request necessary
