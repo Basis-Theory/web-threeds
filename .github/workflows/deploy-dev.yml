@@ -46,8 +46,8 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
 
   build-release:
     runs-on: ${{ matrix.os }}

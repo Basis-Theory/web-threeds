@@ -103,8 +103,8 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
 
       - name: Terraform validate
         id: validate
@@ -113,8 +113,8 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
 
   terraform-plan:
     runs-on: ubuntu-latest
@@ -166,5 +166,5 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: ${{matrix.env}}
-          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
