@@ -46,8 +46,8 @@ jobs:
         continue-on-error: false
         env:
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.TF_R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.TF_R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
+          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
 
   build-release:
     runs-on: ${{ matrix.os }}
@@ -170,7 +170,7 @@ jobs:
 
       - name: Stop Deploy Message
         if: always()
-        uses: Basis-Theory/github-actions/deploy-slack-action@master
+        uses: Basis-Theory/public-github-actions/deploy-slack-action@master
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_DEV_DEPLOY_CHANNEL_ID }}
