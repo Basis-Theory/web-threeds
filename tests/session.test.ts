@@ -535,7 +535,13 @@ describe('createSession', () => {
 
     queueMock(createSessionResponse);
 
-    const response = await createSession({ tokenId: tokenId });
+    const response = await createSession({
+      tokenId: tokenId,
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    });
 
     await resolvePendingPromises();
 

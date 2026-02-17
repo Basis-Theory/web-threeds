@@ -250,13 +250,19 @@ export const createSession = async ({
       id: string;
       cardBrand?: string;
       additionalCardBrands?: string[];
+      metadata?: Record<string, unknown>;
     } = {
       id: session.id,
       cardBrand: session.cardBrand,
+      metadata: session.metadata,
     };
 
     if (session.additionalCardBrands) {
       response.additionalCardBrands = session.additionalCardBrands;
+    }
+
+    if (session.metadata) {
+      response.metadata = session.metadata;
     }
 
     return response;
