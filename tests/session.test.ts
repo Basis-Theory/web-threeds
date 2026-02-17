@@ -519,4 +519,33 @@ describe('createSession', () => {
       additionalCardBrands: ['visa', 'cartes bancaires'],
     });
   });
+
+  it('should handle session response with additional metadata', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      correlationId: '',
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ tokenId: tokenId });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual({
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    });
+  });
 });
