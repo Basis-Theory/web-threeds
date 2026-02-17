@@ -253,8 +253,7 @@ export const createSession = async ({
       metadata?: Record<string, unknown>;
     } = {
       id: session.id,
-      cardBrand: session.cardBrand,
-      metadata: session.metadata,
+      cardBrand: session.cardBrand
     };
 
     if (session.additionalCardBrands) {
