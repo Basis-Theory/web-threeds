@@ -33,6 +33,7 @@ export interface Create3dsSessionRequest {
    */
   methodRequestMode?: AcsMode;
   challengeMode?: AcsMode;
+  metadata?: Record<string, unknown>;
 }
 
 export type Create3dsSessionResponse = {
@@ -42,6 +43,7 @@ export type Create3dsSessionResponse = {
   method_notification_url?: string;
   additional_card_brands?: string[];
   correlationId: string;
+  metadata?: Record<string, unknown>;
 };
 
 /**
@@ -75,7 +77,7 @@ const submitMethodRequestRedirect = (
   document.body.appendChild(form);
   form.submit();
 
-  // check periodically if method window is closed (it closes immediatelly on completion)
+  // check periodically if the method window is closed (it closes immediately on completion)
   const checkClosedInterval = window.setInterval(() => {
     if (newWindow.closed) {
       clearInterval(checkClosedInterval);
@@ -130,6 +132,7 @@ const makeSessionRequest = async ({
   methodRequestMode,
   challengeMode,
   correlationId,
+  metadata
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
@@ -158,6 +161,7 @@ const makeSessionRequest = async ({
       device: 'browser',
       deviceInfo,
       webChallengeMode: challengeMode,
+      metadata,
     }),
     correlationId
   );
@@ -169,7 +173,7 @@ const makeSessionRequest = async ({
       json = await response.json();
     } catch {
       const msg = `Failed to parse error response. HTTP Status: ${response.status}`;
-      logger.log.error(msg);
+      await logger.log.error(msg);
       throw new Error(msg);
     }
 
@@ -177,7 +181,7 @@ const makeSessionRequest = async ({
       processApiError(json);
     } else {
       const msg = `An unknown error occurred while creating session. Status: ${response.status}.`;
-      logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
+      await logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
       throw new Error(msg);
     }
   }
@@ -189,7 +193,7 @@ const makeSessionRequest = async ({
   session.correlationId =
     response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
 
-  logger.log.info(`3DS session response received with ID ${session.id}`);
+  await logger.log.info(`3DS session response received with ID ${session.id}`);
 
   if (session.methodUrl && !skipMethodRequest) {
     notify({
@@ -224,6 +228,7 @@ export const createSession = async ({
   methodRequestMode = ACS_MODE.IFRAME,
   challengeMode = ACS_MODE.IFRAME,
   correlationId = '',
+  metadata = {},
 }: Create3dsSessionRequest) => {
   const session = await makeSessionRequest({
     tokenId,
@@ -233,6 +238,7 @@ export const createSession = async ({
     methodRequestMode,
     challengeMode,
     correlationId,
+    metadata,
   }).catch((error) => {
     // Preserve the full error object (BasisTheory3dsError or other Error types)
     return Promise.reject(error);
@@ -244,13 +250,18 @@ export const createSession = async ({
       id: string;
       cardBrand?: string;
       additionalCardBrands?: string[];
+      metadata?: Record<string, unknown>;
     } = {
       id: session.id,
-      cardBrand: session.cardBrand,
+      cardBrand: session.cardBrand
     };
 
     if (session.additionalCardBrands) {
       response.additionalCardBrands = session.additionalCardBrands;
+    }
+
+    if (session.metadata) {
+      response.metadata = session.metadata;
     }
 
     return response;
