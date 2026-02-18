@@ -8,7 +8,7 @@ import {
 import { logger } from '~src/utils/logging';
 
 export const handleChallenge = (
-  timeout: number = 60000
+  timeout: number = 300000
 ): Promise<{
   id: string;
   isCompleted?: boolean;

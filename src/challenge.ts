@@ -180,7 +180,7 @@ export const startChallenge = async ({
   threeDSVersion,
   windowSize,
   mode = 'iframe',
-  timeout = 60000,
+  timeout = 300000,
   containerId,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({
