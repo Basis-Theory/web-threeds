@@ -5,7 +5,7 @@ import {
   METHOD_REQUEST,
   BT_CORRELATION_ID_HEADER_NAME,
 } from '~src/constants';
-import { getDeviceInfo } from '~src/utils/browser';
+import { detectWebView, getDeviceInfo } from '~src/utils/browser';
 import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
   DeepTransformKeysCase,
@@ -194,6 +194,14 @@ const makeSessionRequest = async ({
     response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
 
   await logger.log.info(`3DS session response received with ID ${session.id}`);
+
+  logger.log.info('3ds-device-fingerprint', {
+    sessionId: session.id,
+    ...Object.fromEntries(
+      Object.entries(deviceInfo).map(([k, v]) => [k, String(v)])
+    ),
+    isWebView: String(detectWebView()),
+  });
 
   if (session.methodUrl && !skipMethodRequest) {
     notify({
