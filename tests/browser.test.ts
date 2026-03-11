@@ -147,11 +147,11 @@ describe('detectWebView', () => {
   };
 
   afterEach(() => {
-    delete (window as any).ReactNativeWebView;
+    delete (window as { ReactNativeWebView?: any }).ReactNativeWebView;
   });
 
   it('should detect React Native WebView', () => {
-    (window as any).ReactNativeWebView = {};
+    (window as { ReactNativeWebView?: any }).ReactNativeWebView = {};
     expect(detectWebView()).toBe(true);
   });
 

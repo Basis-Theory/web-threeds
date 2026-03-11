@@ -60,7 +60,7 @@ export const getDeviceInfo = (): ThreeDSDeviceInfo => ({
 });
 
 export const detectWebView = (): boolean => {
-  if (typeof (window as any).ReactNativeWebView !== 'undefined') return true;
+  if ('ReactNativeWebView' in window) return true;
 
   const ua = window.navigator.userAgent;
 
