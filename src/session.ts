@@ -195,7 +195,7 @@ const makeSessionRequest = async ({
 
   await logger.log.info(`3DS session response received with ID ${session.id}`);
 
-  logger.log.info('3ds-device-fingerprint', {
+  await logger.log.info('3ds-device-fingerprint', {
     sessionId: session.id,
     ...Object.fromEntries(
       Object.entries(deviceInfo).map(([k, v]) => [k, String(v)])
