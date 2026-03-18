@@ -12,3 +12,6 @@ cypress/downloads
 .vscode/
 .parcel-cache/
 .yarn
+
+# IDE
+.cursor
