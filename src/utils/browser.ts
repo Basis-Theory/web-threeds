@@ -59,6 +59,24 @@ export const getDeviceInfo = (): ThreeDSDeviceInfo => ({
   browserUserAgent: window.navigator.userAgent,
 });
 
+export const detectWebView = (): boolean => {
+  if ('ReactNativeWebView' in window) return true;
+
+  const ua = window.navigator.userAgent;
+
+  // Android WebView: explicit wv flag in UA
+  if (/Android/.test(ua) && /wv\)/.test(ua)) return true;
+
+  // Generic Android privacy UA used by React Native / WebView apps
+  if (/Linux; Android/.test(ua) && !/ Chrome\//.test(ua)) return true;
+
+  // iOS WKWebView: has iPhone/iPad + AppleWebKit but no "Safari/" token
+  if (/iPhone|iPad/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua))
+    return true;
+
+  return false;
+};
+
 export const getWindowSizeById = (
   challengeWindowSize: WindowSizeId = WindowSizeId.FIVE
 ) => {

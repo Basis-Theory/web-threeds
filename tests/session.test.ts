@@ -2,6 +2,7 @@ import { ACS_MODE, METHOD_REQUEST } from '~src/constants';
 import { createSession } from '~src/session';
 import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
+import { logger } from '~src/utils/logging';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
 let fetchMockCalls: any[] = [];
@@ -518,6 +519,35 @@ describe('createSession', () => {
       cardBrand: 'visa',
       additionalCardBrands: ['visa', 'cartes bancaires'],
     });
+  });
+
+  it('should log device fingerprint with sessionId after session creation', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(createSessionResponse);
+
+    await createSession({ tokenId });
+
+    await resolvePendingPromises();
+
+    expect(logger.log.info).toHaveBeenCalledWith(
+      '3ds-device-fingerprint',
+      expect.objectContaining({
+        sessionId: 'mockSessionId',
+        isWebView: expect.any(String),
+        browserUserAgent: expect.any(String),
+        browserScreenWidth: expect.any(String),
+        browserScreenHeight: expect.any(String),
+        browserColorDepth: expect.any(String),
+        browserLanguage: expect.any(String),
+        browserTZ: expect.any(String),
+      })
+    );
   });
 
   it('should handle session response with additional metadata', async () => {
