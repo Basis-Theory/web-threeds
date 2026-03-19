@@ -1,37 +1,46 @@
 # Web 3DS
 
-Web SDK for 3D Secure authentication — provides client-side 3DS session management and challenge handling.
+TypeScript SDK for client-side 3D Secure session management and challenge handling.
 
-## Development Workflow
+## Build & Test
 
 ```bash
 yarn install
-yarn build            # Build (generates types, bundles with Parcel)
-yarn watch            # Watch mode for development
+yarn build                              # prepare.js + generateTypes + parcel build
+yarn test                               # Jest unit tests
+yarn lint                               # ESLint
+npx jest --testPathPattern="<pattern>"  # Targeted test
+yarn test:coverage                      # Tests with coverage
 ```
 
-## Testing
+Always verify fixes with targeted tests before considering done.
 
-```bash
-yarn lint             # ESLint
-yarn lint:fix         # Auto-fix
-yarn test             # Unit tests (Jest)
-npx jest --testPathPattern="<pattern>"   # Targeted test
-yarn test:coverage    # Tests with coverage
-```
+## Project Structure
 
-## Feedback Loops
+- `src/` — Library source (TypeScript)
+- `src/pages/` — HTML pages (method.html, challenge.html) — bundled into dist
+- `tests/` — Unit tests (Jest + jsdom)
+- `terraform/` — Infrastructure for CDN deployment (DO NOT apply locally)
+- `scripts/prepare.js` — Creates dist/package.json and copies HTML pages to dist
 
-Use `yarn watch` for live rebuilds + `npx jest --testPathPattern="<pattern>"` for targeted tests.
+## Gotchas
 
-When a failing test is discovered, always verify it passes using the appropriate feedback loop before considering the fix complete.
+- **Parcel bundler** (not Webpack/Vite): Configured via `"targets"` in `package.json`. Outputs: `dist/main/` (CJS), `dist/module/` (ESM), `dist/types/` (declarations), `dist/bundle/` (browser global).
+- **4 build targets**: `main` (CJS lib), `module` (ESM lib), `types` (declarations via tsc), `bundle` (browser global, optimized). All configured in package.json `"targets"`.
+- **HTML pages are part of the package**: `src/pages/method.html` and `src/pages/challenge.html` are copied to dist by `prepare.js`. Don't move them.
+- **`prepare.js` is critical**: Creates dist/package.json, copies HTML pages. Runs as first step of `yarn build`.
+- **CDN bundle deployment**: Release uploads a browser bundle to Cloudflare R2 via `scripts/uploadbundle.sh`. The terraform dir manages R2 infrastructure.
+- **Size limits**: `size-limit` configured in package.json — main and module targets must be under 5KB each.
+- **Husky git hooks**: `husky install` runs on `prepare`. CI disables with `HUSKY=0`.
+- **`yarn` not `npm`**: Uses yarn + yarn.lock.
+- **Version in package.json**: CI bumps via `make update-version` before publish.
+- **Release triggered by GitHub Release**: Not on push to master.
+- **Terraform dir**: DO NOT run terraform apply locally. It manages prod CDN infrastructure.
 
-## Standards & Conventions
+## Release
 
-- TypeScript, Parcel for bundling, Jest for testing
-- `yarn` for package management
-- Type generation via `tsc --emitDeclarationOnly`
+Triggered by GitHub Release. CI: terraform apply (CDN infra) -> bump version -> build -> npm publish -> upload CDN bundle to R2 -> commit version back to master. Published as `@basis-theory/web-threeds`.
 
-## Links
+## Docs
 
-- [3DS docs](https://developers.basistheory.com/docs/features/3d-secure/)
+- [3D Secure](https://developers.basistheory.com/docs/features/3d-secure/)
