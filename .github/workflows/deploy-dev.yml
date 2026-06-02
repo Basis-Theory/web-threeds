@@ -12,42 +12,18 @@ jobs:
       contents: read
     environment: DEV
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Actions Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::914054469264:role/github-actions-admin-dev
-          aws-region: us-east-2
-
-      - name: Configure AWS Terraform Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::914054469264:role/terraform-admin
-          aws-region: us-east-2
-          role-chaining: true
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.6
-
-      - name: Terraform Init
-        id: init
-        run: terraform init -backend-config=dev.tfbackend
-        working-directory: terraform/
-        continue-on-error: false
-
       - name: Terraform Apply Dev
-        id: plan
-        run: terraform apply -auto-approve
-        working-directory: terraform/
-        continue-on-error: false
+        uses: Basis-Theory/github-actions/terraform-action@master
+        with:
+          tf-directory: terraform
+          operation: apply
+          environment: dev
+          region: us-east-2
         env:
+          TF_CLI_ARGS_init: -backend-config=dev.tfbackend
           TF_VAR_env: dev
-          TF_VAR_r2_access_key: ${{secrets.R2_ACCESS_KEY}}
-          TF_VAR_r2_secret_key: ${{secrets.R2_SECRET_KEY}}
+          TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
+          TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}
 
   build-release:
     runs-on: ${{ matrix.os }}
