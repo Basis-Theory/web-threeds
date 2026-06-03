@@ -1,87 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Basis Theory 3DS Challenge</title>
+    <style>
+      /* remove default margins/padding and hide any overflow */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+      /* style for the iframe so it takes the full available space */
+      #acsChallengeIframe {
+        display: block;
+        margin: 0;
+        padding: 0;
+        border: none;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Basis Theory 3DS Challenge</title>
-  <style>
-    /* remove default margins/padding and hide any overflow */
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
-    /* style for the iframe so it takes the full available space */
-    #acsChallengeIframe {
-      display: block;
-      margin: 0;
-      padding: 0;
-      border: none;
-      width: 100%;
-      height: 100%;
-    }
-  </style>
-</head>
+  <body></body>
 
-<body>
-</body>
+  <script>
+    let acsURL = '';
+    let creq = '';
 
-<script>
-  let acsURL = '';
-  let creq = '';
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'startChallenge') {
+        acsURL = event.data.acsURL;
+        creq = event.data.creq;
 
-  window.addEventListener('message', (event) => {
-    if (event.data.type === 'startChallenge') {
-      acsURL = event.data.acsURL;
-      creq = event.data.creq;
+        if (!acsURL || !creq) {
+          window.parent?.postMessage(
+            {
+              type: 'error',
+              details: 'acsURL or creq missing in the message',
+            },
+            '*'
+          );
+        }
 
-      if (!acsURL || !creq) {
-        window.parent?.postMessage({
-          type: 'error',
-          details: 'acsURL or creq missing in the message'
-        }, '*');
+        // iframe
+        const iframe = document.createElement('iframe');
+        iframe.name = 'acsChallengeIframe';
+        iframe.id = 'acsChallengeIframe';
+        iframe.width = '100%'; // fill parent iframe
+        iframe.height = '100%'; // fill parent iframe
+        document.body.appendChild(iframe);
+
+        const html = document.createElement('html');
+        const body = document.createElement('body');
+
+        // challenge form
+        const form = document.createElement('form');
+        form.name = 'threeDSCReqForm';
+        form.action = acsURL;
+        form.method = 'POST';
+        form.target = iframe.name;
+
+        const input = document.createElement('input');
+        input.name = 'creq';
+        input.value = creq;
+        form.appendChild(input);
+        body.appendChild(form);
+        html.appendChild(body);
+
+        // add form to iframe
+        iframe.appendChild(html);
+        form.submit();
+
+        // submit and catch event
+        // form.submit();
+      } else if (event.data.type === 'challenge') {
+        // message coming from api notification, post back to parent
+        window.parent?.postMessage(event.data, '*');
       }
 
-      // iframe
-      const iframe = document.createElement('iframe');
-      iframe.name = 'acsChallengeIframe';
-      iframe.id = 'acsChallengeIframe';
-      iframe.width = '100%'; // fill parent iframe
-      iframe.height = '100%'; // fill parent iframe
-      document.body.appendChild(iframe);
-
-      const html = document.createElement('html');
-      const body = document.createElement('body');
-
-      // challenge form
-      const form = document.createElement('form');
-      form.name = 'threeDSCReqForm';
-      form.action = acsURL;
-      form.method = 'POST';
-      form.target = iframe.name;
-
-      const input = document.createElement('input');
-      input.name = 'creq';
-      input.value = creq;
-      form.appendChild(input);
-      body.appendChild(form);
-      html.appendChild(body);
-
-      // add form to iframe
-      iframe.appendChild(html);
-      form.submit();
-
-      // submit and catch event
-      // form.submit();
-    } else if (event.data.type === 'challenge') {
-      // message coming from api notification, post back to parent
-      window.parent?.postMessage(event.data, '*');
-    }
-
-    // ignore other messages
-  });
-</script>
-
+      // ignore other messages
+    });
+  </script>
 </html>

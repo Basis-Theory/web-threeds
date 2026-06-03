@@ -2,6 +2,7 @@ import { ACS_MODE, METHOD_REQUEST } from '~src/constants';
 import { createSession } from '~src/session';
 import { createIframeContainer } from '~src/utils/dom';
 import { http } from '~src/utils/http';
+import { logger } from '~src/utils/logging';
 
 let fetchMocksQueue: Record<string, unknown>[] = [];
 let fetchMockCalls: any[] = [];
@@ -86,6 +87,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -125,6 +127,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -175,7 +178,7 @@ describe('createSession', () => {
     // Simulate an error response from the API
     queueMock(errorResponse, false, 400);
 
-    await expect(createSession({ tokenId })).rejects.toEqual(
+    await expect(createSession({ tokenId })).rejects.toThrow(
       '3DS is not supported for the provided card'
     );
   });
@@ -194,7 +197,14 @@ describe('createSession', () => {
 
     queueMock(errorResponse, false, 500);
 
-    await expect(createSession({ tokenId })).rejects.toEqual('Unknown Error');
+    try {
+      await createSession({ tokenId });
+      fail('Expected error to be thrown');
+    } catch (error: any) {
+      expect(error.message).toEqual('An unexpected error occurred.');
+      expect(error.title).toEqual('Unknown Error');
+      expect(error.status).toEqual(500);
+    }
   });
 
   it('should handle 3DS service errors with message and details', async () => {
@@ -203,21 +213,37 @@ describe('createSession', () => {
     const errorResponse = {
       title: '3DS Service Error',
       status: 424,
-      detail: 'The 3DS service returned an error. See the \'error\' field for more details.',
+      detail:
+        "The 3DS service returned an error. See the 'error' field for more details.",
       error: {
         serviceStatus: 'ERROR',
         sessionId: '',
         errorSource: 'ACS',
         message: 'Authentication failed',
-        details: 'Cardholder authentication failed'
-      }
+        details: 'Cardholder authentication failed',
+      },
     };
 
     queueMock(errorResponse, false, 424);
 
-    await expect(createSession({ tokenId })).rejects.toEqual(
-      'Authentication failed - details: Cardholder authentication failed'
-    );
+    try {
+      await createSession({ tokenId });
+      fail('Expected error to be thrown');
+    } catch (error: any) {
+      expect(error.message).toEqual('Authentication failed');
+      expect(error.title).toEqual('3DS Service Error');
+      expect(error.status).toEqual(424);
+      expect(error.detail).toEqual(
+        "The 3DS service returned an error. See the 'error' field for more details."
+      );
+      expect(error.error).toEqual({
+        serviceStatus: 'ERROR',
+        sessionId: '',
+        errorSource: 'ACS',
+        message: 'Authentication failed',
+        detail: 'Cardholder authentication failed',
+      });
+    }
   });
 
   it('should handle 3DS service errors with only message', async () => {
@@ -226,18 +252,95 @@ describe('createSession', () => {
     const errorResponse = {
       title: '3DS Service Error',
       status: 424,
-      detail: 'The 3DS service returned an error. See the \'error\' field for more details.',
+      detail:
+        "The 3DS service returned an error. See the 'error' field for more details.",
       error: {
         serviceStatus: '401',
         sessionId: '',
         errorSource: 'Access Control Server',
-        message: 'Authentication failed'
-      }
+        message: 'Authentication failed',
+      },
     };
 
     queueMock(errorResponse, false, 424);
 
-    await expect(createSession({ tokenId })).rejects.toEqual('Authentication failed');
+    try {
+      await createSession({ tokenId });
+      fail('Expected error to be thrown');
+    } catch (error: any) {
+      expect(error.message).toEqual('Authentication failed');
+      expect(error.title).toEqual('3DS Service Error');
+      expect(error.status).toEqual(424);
+      expect(error.detail).toEqual(
+        "The 3DS service returned an error. See the 'error' field for more details."
+      );
+      expect(error.error).toEqual({
+        serviceStatus: '401',
+        sessionId: '',
+        errorSource: 'Access Control Server',
+        message: 'Authentication failed',
+      });
+    }
+  });
+
+  it('should handle the exact error scenario from user requirements - 403 access denied', async () => {
+    const tokenId = 'mockId';
+
+    // This is the EXACT error response format from the API (snake_case)
+    const errorResponse = {
+      title: '3DS Service Error',
+      detail:
+        "The 3DS service returned an error. See the 'error' field for more details.",
+      status: 424,
+      error: {
+        service_status: '403',
+        session_id: 'c0c22fcd-d42c-497e-a9a6-2eacd31770d7',
+        error_source: '3DS Server',
+        message:
+          "Access denied by issuer. See 'details' for additional detail.",
+        detail:
+          'The merchant_info.acquirer_bin is not recognized by the issuer.',
+      },
+    };
+
+    queueMock(errorResponse, false, 424);
+
+    try {
+      await createSession({ tokenId });
+      fail('Expected error to be thrown');
+    } catch (error: any) {
+      // Verify all error properties are accessible
+      expect(error.message).toEqual(
+        "Access denied by issuer. See 'details' for additional detail."
+      );
+      expect(error.title).toEqual('3DS Service Error');
+      expect(error.status).toEqual(424);
+      expect(error.detail).toEqual(
+        "The 3DS service returned an error. See the 'error' field for more details."
+      );
+
+      // Verify the nested error object is normalized to camelCase
+      expect(error.error).toBeDefined();
+      expect(error.error.serviceStatus).toEqual('403');
+      expect(error.error.sessionId).toEqual(
+        'c0c22fcd-d42c-497e-a9a6-2eacd31770d7'
+      );
+      expect(error.error.errorSource).toEqual('3DS Server');
+      expect(error.error.message).toEqual(
+        "Access denied by issuer. See 'details' for additional detail."
+      );
+      expect(error.error.detail).toEqual(
+        'The merchant_info.acquirer_bin is not recognized by the issuer.'
+      );
+
+      // Verify users can match on these fields (near-term solution)
+      expect(error.message.includes('Access denied')).toBe(true);
+      expect(error.detail.includes('3DS service')).toBe(true);
+
+      // Verify users can use serviceStatus for mapping (long-term solution)
+      expect(error.error.serviceStatus).toBe('403');
+      expect(error.error.errorSource).toBe('3DS Server');
+    }
   });
 
   it('should send tokenId in the request if tokenId is provided', async () => {
@@ -284,13 +387,13 @@ describe('createSession', () => {
     const tokenId = 'mockTokenId';
     const tokenIntentId = 'mockTokenIntentId';
 
-    await expect(createSession({ tokenId, tokenIntentId })).rejects.toEqual(
+    await expect(createSession({ tokenId, tokenIntentId })).rejects.toThrow(
       'Only one of pan, tokenId, or tokenIntentId should be provided.'
     );
   });
 
   it('should throw an error if no params are included', async () => {
-    await expect(createSession({})).rejects.toEqual(
+    await expect(createSession({})).rejects.toThrow(
       'One of pan, tokenId, or tokenIntentId is required.'
     );
   });
@@ -336,6 +439,7 @@ describe('createSession', () => {
     const createSessionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
     };
 
     queueMock(versionResponse);
@@ -366,6 +470,7 @@ describe('createSession', () => {
     const versionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
+      correlationId: '',
       methodUrl: 'mockMethodUrl',
     };
 
@@ -391,5 +496,92 @@ describe('createSession', () => {
 
     // assert no form submission happened
     expect(window.HTMLFormElement.prototype.submit).not.toHaveBeenCalled();
+  });
+
+  it('should handle session response with additional card brands', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      correlationId: '',
+      additional_card_brands: ['visa', 'cartes bancaires'],
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({ tokenId: tokenId });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual({
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      additionalCardBrands: ['visa', 'cartes bancaires'],
+    });
+  });
+
+  it('should log device fingerprint with sessionId after session creation', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+    };
+
+    queueMock(createSessionResponse);
+
+    await createSession({ tokenId });
+
+    await resolvePendingPromises();
+
+    expect(logger.log.info).toHaveBeenCalledWith(
+      '3ds-device-fingerprint',
+      expect.objectContaining({
+        sessionId: 'mockSessionId',
+        isWebView: expect.any(String),
+        browserUserAgent: expect.any(String),
+        browserScreenWidth: expect.any(String),
+        browserScreenHeight: expect.any(String),
+        browserColorDepth: expect.any(String),
+        browserLanguage: expect.any(String),
+        browserTZ: expect.any(String),
+      })
+    );
+  });
+
+  it('should handle session response with additional metadata', async () => {
+    const tokenId = 'mockTokenId';
+
+    const createSessionResponse = {
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      correlationId: '',
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    };
+
+    queueMock(createSessionResponse);
+
+    const response = await createSession({
+      tokenId: tokenId,
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    });
+
+    await resolvePendingPromises();
+
+    expect(response).toStrictEqual({
+      id: 'mockSessionId',
+      cardBrand: 'visa',
+      metadata: {
+        'fieldA': 'valueA',
+        'fieldB': 'valueB',
+      }
+    });
   });
 });

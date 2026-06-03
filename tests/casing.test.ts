@@ -44,6 +44,11 @@ describe.each([
     [{ snakeCaseKey: 'value' }, { anotherSnakeCaseKey: 'value' }],
   ],
   [
+    'arrays of strings',
+    ['snake_case_string', 'another_snake_case_string'],
+    ['snakeCaseString', 'anotherSnakeCaseString'],
+  ],
+  [
     'deeply nested objects',
     { level1: { level2: { snake_case_key: 'value' } } },
     { level1: { level2: { snakeCaseKey: 'value' } } },
@@ -98,6 +103,11 @@ describe.each([
         ],
       },
     ],
+  ],
+  [
+    'arrays of strings',
+    ['camelCaseString', 'anotherCamelCaseString'],
+    ['camel_case_string', 'another_camel_case_string'],
   ],
   [
     'deeply nested objects',

@@ -1,5 +1,10 @@
 import { sdkBaseUrl } from '.';
-import { ACS_MODE, AcsMode, CHALLENGE_PAGE_PATH, CHALLENGE_REQUEST } from './constants';
+import {
+  ACS_MODE,
+  AcsMode,
+  CHALLENGE_PAGE_PATH,
+  CHALLENGE_REQUEST,
+} from './constants';
 import { handleChallenge } from './handlers/handleChallenge';
 import { WindowSizeId, getWindowSizeById } from './utils/browser';
 import { createForm, createIframe, createInput } from './utils/dom';
@@ -86,12 +91,15 @@ const submitChallengeRequest = (
   challengeIframe.src = `${sdkBaseUrl}/${CHALLENGE_PAGE_PATH}`;
 
   challengeIframe.onload = () => {
-    challengeIframe.contentWindow?.postMessage({
-      type: 'startChallenge',
-      acsURL,
-      creq: creqBase64,
-    }, '*');
-   }
+    challengeIframe.contentWindow?.postMessage(
+      {
+        type: 'startChallenge',
+        acsURL,
+        creq: creqBase64,
+      },
+      '*'
+    );
+  };
 };
 
 /**
@@ -172,7 +180,7 @@ export const startChallenge = async ({
   threeDSVersion,
   windowSize,
   mode = 'iframe',
-  timeout = 60000,
+  timeout = 300000,
   containerId,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({
@@ -182,10 +190,10 @@ export const startChallenge = async ({
     threeDSVersion,
     windowSize,
     mode,
-    containerId
-  }).catch((error) => {
-    return Promise.reject((error as Error).message);
+    containerId,
   });
+  // If makeChallengeRequest succeeds, continue with challenge
+  // If it fails, the error will propagate automatically
 
   return handleChallenge(timeout);
 };
