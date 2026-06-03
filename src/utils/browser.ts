@@ -28,28 +28,54 @@ const stringifyValue = <T>(val: T): string => {
   return JSON.stringify(val);
 };
 
-
 export const getColorDepth = () => {
   const validColorDepths = [1, 4, 8, 15, 16, 24, 32, 48];
 
   const actualColorDepth = window.screen.colorDepth;
-  const possibleValues = validColorDepths.filter((val) => val <= actualColorDepth);
+  const possibleValues = validColorDepths.filter(
+    (val) => val <= actualColorDepth
+  );
 
   if (possibleValues.length === 0) return validColorDepths[0];
 
   return Math.max(...possibleValues);
 };
 
+/**
+ * Trims browser language code to include only language and region.
+ * Handles cases like 'en-GB-oxendict' and returns 'en-GB'.
+ * Also handles simple language codes like 'en' which are returned as-is.
+ */
+export const trimLanguageCode = (c: string) => c?.split("-").slice(0, 2).join("-");
+
 export const getDeviceInfo = (): ThreeDSDeviceInfo => ({
   browserColorDepth: stringifyValue(getColorDepth()),
   browserJavascriptEnabled: true,
   browserJavaEnabled: window.navigator.javaEnabled(),
-  browserLanguage: window.navigator.language,
+  browserLanguage: trimLanguageCode(window.navigator.language),
   browserScreenHeight: stringifyValue(window.screen.height),
   browserScreenWidth: stringifyValue(window.screen.width),
   browserTZ: stringifyValue(new Date().getTimezoneOffset()),
   browserUserAgent: window.navigator.userAgent,
 });
+
+export const detectWebView = (): boolean => {
+  if ('ReactNativeWebView' in window) return true;
+
+  const ua = window.navigator.userAgent;
+
+  // Android WebView: explicit wv flag in UA
+  if (/Android/.test(ua) && /wv\)/.test(ua)) return true;
+
+  // Generic Android privacy UA used by React Native / WebView apps
+  if (/Linux; Android/.test(ua) && !/ Chrome\//.test(ua)) return true;
+
+  // iOS WKWebView: has iPhone/iPad + AppleWebKit but no "Safari/" token
+  if (/iPhone|iPad/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua))
+    return true;
+
+  return false;
+};
 
 export const getWindowSizeById = (
   challengeWindowSize: WindowSizeId = WindowSizeId.FIVE

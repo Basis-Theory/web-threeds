@@ -1,10 +1,15 @@
-import { ACS_MODE, AcsMode, CHALLENGE_REQUEST } from './constants';
+import { sdkBaseUrl } from '.';
+import {
+  ACS_MODE,
+  AcsMode,
+  CHALLENGE_PAGE_PATH,
+  CHALLENGE_REQUEST,
+} from './constants';
 import { handleChallenge } from './handlers/handleChallenge';
 import { WindowSizeId, getWindowSizeById } from './utils/browser';
 import { createForm, createIframe, createInput } from './utils/dom';
 import { encode } from './utils/encoding';
 import { logger } from './utils/logging';
-import { NotificationType, notify } from '~src/utils/events';
 
 type ThreeDSChallengeRequest = {
   acsChallengeUrl: string;
@@ -21,7 +26,11 @@ type ThreeDSChallengeRequest = {
    */
   windowSize?: `${WindowSizeId}` | WindowSizeId;
   timeout?: number;
+  /**
+   * @deprecated This property is deprecated and will be removed in the next major version
+   */
   mode?: AcsMode;
+  containerId?: string;
 };
 interface AcsThreeDSChallengeRequest {
   messageType: 'CReq'; // Must always be set to "CReq"
@@ -60,9 +69,10 @@ function isAcsThreeDSChallengeRequest(
 const submitChallengeRequest = (
   acsURL: string,
   creq: AcsThreeDSChallengeRequest,
+  containerId?: string
 ) => {
   const container = document.getElementById(
-    CHALLENGE_REQUEST.FRAME_CONTAINER_ID
+    containerId ?? CHALLENGE_REQUEST.FRAME_CONTAINER_ID
   );
 
   const windowSize = getWindowSizeById(creq.challengeWindowSize);
@@ -70,8 +80,6 @@ const submitChallengeRequest = (
   const creqBase64 = encode(creq);
   const challengeIframeName = CHALLENGE_REQUEST.IFRAME_NAME;
 
-  const html = document.createElement('html');
-  const body = document.createElement('body');
   const challengeIframe = createIframe(
     container,
     challengeIframeName,
@@ -79,21 +87,24 @@ const submitChallengeRequest = (
     windowSize[0],
     windowSize[1]
   );
-  const form = createForm(
-    CHALLENGE_REQUEST.FORM_NAME,
-    acsURL,
-    challengeIframe.name
-  );
-  const creqInput = createInput('creq', creqBase64);
 
-  form.appendChild(creqInput);
-  body.appendChild(form);
-  html.appendChild(body);
-  challengeIframe.appendChild(html);
+  challengeIframe.src = `${sdkBaseUrl}/${CHALLENGE_PAGE_PATH}`;
 
-  form.submit();
+  challengeIframe.onload = () => {
+    challengeIframe.contentWindow?.postMessage(
+      {
+        type: 'startChallenge',
+        acsURL,
+        creq: creqBase64,
+      },
+      '*'
+    );
+  };
 };
 
+/**
+ * @deprecated This method is deprecated and will be removed in the next major version
+ */
 const submitChallengeRequestRedirect = (
   acsURL: string,
   creq: AcsThreeDSChallengeRequest
@@ -106,8 +117,7 @@ const submitChallengeRequestRedirect = (
   );
 
   if (!newWindow) {
-    console.error('Popup blocked or unable to open the window.');
-    return;
+    throw new Error('Popup blocked or unable to open the window.');
   }
 
   const creqBase64 = encode(creq);
@@ -123,19 +133,6 @@ const submitChallengeRequestRedirect = (
 
   document.body.appendChild(form);
   form.submit();
-
-  // check periodically if method window is closed (it closes immediatelly on completion)
-  // TODO: potentially use a middleware page for additional control
-  const checkClosedInterval = window.setInterval(() => {
-    if (newWindow.closed) {
-      clearInterval(checkClosedInterval);
-      notify({
-        isCompleted: true,
-        id: creq.threeDSServerTransID,
-        type: NotificationType.CHALLENGE,
-      });
-    }
-  }, 500);
 };
 
 const makeChallengeRequest = ({
@@ -145,6 +142,7 @@ const makeChallengeRequest = ({
   threeDSVersion,
   windowSize,
   mode,
+  containerId,
 }: ThreeDSChallengeRequest): Promise<ThreeDSSession | Error> => {
   if (!sessionId) {
     throw new Error('Session ID is required');
@@ -162,7 +160,7 @@ const makeChallengeRequest = ({
     if (mode === ACS_MODE.REDIRECT) {
       submitChallengeRequestRedirect(acsChallengeUrl, creq);
     } else {
-      submitChallengeRequest(acsChallengeUrl, creq);
+      submitChallengeRequest(acsChallengeUrl, creq, containerId);
     }
   } else {
     const err = `Invalid challenge request payload for session: ${sessionId}`;
@@ -182,7 +180,8 @@ export const startChallenge = async ({
   threeDSVersion,
   windowSize,
   mode = 'iframe',
-  timeout = 60000,
+  timeout = 300000,
+  containerId,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({
     sessionId,
@@ -190,10 +189,11 @@ export const startChallenge = async ({
     acsChallengeUrl,
     threeDSVersion,
     windowSize,
-    mode
-  }).catch((error) => {
-    return Promise.reject((error as Error).message);
+    mode,
+    containerId,
   });
+  // If makeChallengeRequest succeeds, continue with challenge
+  // If it fails, the error will propagate automatically
 
   return handleChallenge(timeout);
 };

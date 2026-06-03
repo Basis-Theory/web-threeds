@@ -8,6 +8,7 @@ import {
   notify,
 } from '~src/utils/events';
 import { logger } from '~src/utils/logging';
+import { snakeCaseToCamelCase } from '~src/utils/casing';
 
 const getIframeId = (type: NotificationType): string[] =>
   ({
@@ -20,51 +21,81 @@ const getIframeId = (type: NotificationType): string[] =>
 
 export const handleCreateSession = (
   session: Create3dsSessionResponse
-): Promise<{ id: string; cardBrand?: string }> => {
+): Promise<{
+  id: string;
+  correlationId: string;
+  cardBrand?: string;
+  additionalCardBrands?: string[];
+}> => {
   let timeout: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
     const handleMessage = (event: MessageEvent<Notification>) => {
-      if (
-        isNotification(event.data) &&
-        event.data?.type === NotificationType.START_METHOD_TIME_OUT
-      ) {
-        timeout = setTimeout(() => {
-          notify({
-            id: event.data.id,
-            type: NotificationType.METHOD_TIME_OUT,
-            isCompleted: false,
-          });
-        }, 10000);
-      } else if (
-        isNotification(event.data) &&
-        event.data.type !== NotificationType.ERROR &&
-        event.data.type !== NotificationType.CHALLENGE
-      ) {
-        window.removeEventListener('message', handleMessage);
+      if (isNotification(event.data)) {
+        if (event.data.type === NotificationType.ERROR) {
+          logger.log.error(
+            `Error occurred during session creation: ${event?.data?.details}`
+          );
 
-        const toResponse = (
-          event: MessageEvent<Notification>
-        ): { id: string; cardBrand?: string } => ({
-          id: event.data.id,
-          cardBrand: session.cardBrand,
-        });
+          reject(
+            new Error(
+              `An error occurred during session creation: ${event?.data?.details}`
+            )
+          );
+          removeIframe(getIframeId(event.data?.type));
+          clearTimeout(timeout);
+        } else if (event.data.type === NotificationType.START_METHOD_TIME_OUT) {
+          timeout = setTimeout(() => {
+            notify({
+              id: event.data.id,
+              type: NotificationType.METHOD_TIME_OUT,
+              isCompleted: false,
+            });
+          }, 10000);
+        } else if (event.data.type === NotificationType.CHALLENGE) {
+          // discard challenge events
+        } else if (!event.isTrusted) {
+          // discard untrusted events
+        } else {
+          // handle session creation event
+          window.removeEventListener('message', handleMessage);
 
-        const response = toResponse(event);
+          const toResponse = (
+            event: MessageEvent<Notification>
+          ): {
+            id: string;
+            correlationId: string;
+            cardBrand?: string;
+            additionalCardBrands?: string[];
+          } => {
+            const transformedSession = snakeCaseToCamelCase(session);
+            const response: {
+              id: string;
+              correlationId: string;
+              cardBrand?: string;
+              additionalCardBrands?: string[];
+            } = {
+              id: event.data.id,
+              cardBrand: transformedSession.cardBrand,
+              correlationId: transformedSession.correlationId,
+            };
 
-        logger.log.info(
-          `${event.data.type} notification received for session: ${response.id}`
-        );
+            if (transformedSession.additionalCardBrands) {
+              response.additionalCardBrands =
+                transformedSession.additionalCardBrands;
+            }
 
-        resolve(response);
-        removeIframe(getIframeId(event.data?.type));
-        clearTimeout(timeout);
-      } else if (!event.isTrusted) {
-        // discard untrusted events
+            return response;
+          };
+
+          const response = toResponse(event);
+
+          resolve(response);
+          removeIframe(getIframeId(event.data?.type));
+          clearTimeout(timeout);
+        }
       } else {
-        reject('Something happened during session creation, please try again.');
-        removeIframe(getIframeId(event.data?.type));
-        clearTimeout(timeout);
+        // discard other events
       }
     };
 
