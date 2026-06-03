@@ -12,15 +12,29 @@ jobs:
       contents: read
     environment: DEV
     steps:
-      - name: Terraform Apply Dev
-        uses: Basis-Theory/github-actions/terraform-action@master
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          tf-directory: terraform
-          operation: apply
-          environment: dev
-          region: us-east-2
+          role-to-assume: arn:aws:iam::914054469264:role/web-threeds-gh-admin
+          aws-region: us-east-2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init -backend-config=dev.tfbackend
+        working-directory: terraform/
         env:
-          TF_CLI_ARGS_init: -backend-config=dev.tfbackend
+          TF_VAR_env: dev
+          TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
+          TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}
+
+      - name: Terraform Apply Dev
+        run: terraform apply -auto-approve
+        working-directory: terraform/
+        env:
           TF_VAR_env: dev
           TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
           TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}

@@ -72,17 +72,48 @@ jobs:
       fail-fast: true
       matrix:
         env: [dev, prod]
+        include:
+          - env: dev
+            account_id: "914054469264"
+          - env: prod
+            account_id: "469828239459"
 
     steps:
-      - name: Terraform Plan
-        uses: Basis-Theory/github-actions/terraform-action@master
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          tf-directory: terraform
-          operation: plan
-          environment: ${{ matrix.env }}
-          region: us-east-2
+          role-to-assume: arn:aws:iam::${{ matrix.account_id }}:role/web-threeds-gh-ro
+          aws-region: us-east-2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init -backend-config=${{ matrix.env }}.tfbackend
+        working-directory: terraform/
         env:
-          TF_CLI_ARGS_init: -backend-config=${{ matrix.env }}.tfbackend
+          TF_VAR_env: ${{ matrix.env }}
+          TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
+          TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}
+
+      - name: Terraform fmt
+        run: terraform fmt -check -diff
+        working-directory: terraform/
+
+      - name: Terraform validate
+        run: terraform validate
+        working-directory: terraform/
+        env:
+          TF_VAR_env: ${{ matrix.env }}
+          TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
+          TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}
+
+      - name: Terraform plan
+        run: terraform plan
+        working-directory: terraform/
+        env:
           TF_VAR_env: ${{ matrix.env }}
           TF_VAR_r2_access_key: ${{ secrets.R2_ACCESS_KEY }}
           TF_VAR_r2_secret_key: ${{ secrets.R2_SECRET_KEY }}
