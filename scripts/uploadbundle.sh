@@ -10,6 +10,12 @@ BUNDLE_PATH="$BUNDLE_DIR/index.js"
 
 echo $BUNDLE_PATH
 
+# get pages directory
+cd ../pages
+PAGES_DIR="$PWD"
+
+echo $PAGES_DIR
+
 cd "$SCRIPT_DIR"
 
 if [[ -z "${ENVIRONMENT}" ]]; then
@@ -63,6 +69,12 @@ if ! [[ -z "${CLOUDFLARE}" ]]; then
     --s3-access-key-id ${R2_ACCESS_KEY} \
     --s3-secret-access-key ${R2_SECRET_KEY} \
     copyto --verbose ${BUNDLE_PATH} r2:${ENVIRONMENT}-3ds/${MINOR_VERSION_PATH}
+
+  echo "Cloudflare R2 Uploading static pages to $BUNDLE_HOST/pages"
+  rclone --config .rclone.conf \
+    --s3-access-key-id ${R2_ACCESS_KEY} \
+    --s3-secret-access-key ${R2_SECRET_KEY} \
+    copy --verbose ${PAGES_DIR} r2:${ENVIRONMENT}-3ds/pages
 fi
 
 result=$?

@@ -14,6 +14,8 @@ export type Notification = {
   type: NotificationType;
   // additional event info (detailed errors)
   details?: string;
+  // for challenge notifications
+  authenticationStatus?: string;
 };
 
 export const notify = (notification: Notification) =>
