@@ -29,3 +29,8 @@ fs.writeFileSync(
   './dist/package.json',
   JSON.stringify(distPackage, undefined, 2)
 );
+
+// copy pages to dist folder
+fs.mkdirSync('./dist/pages', { recursive: true });
+fs.copyFileSync('./src/pages/method.html', './dist/pages/method.html');
+fs.copyFileSync('./src/pages/challenge.html', './dist/pages/challenge.html');

@@ -1,11 +1,12 @@
-import { ACS_MODE, AcsMode, METHOD_REQUEST } from '~src/constants';
-import { getDeviceInfo } from '~src/utils/browser';
 import {
-  createIframe,
-  createForm,
-  createInput,
-  createElement,
-} from '~src/utils/dom';
+  ACS_MODE,
+  AcsMode,
+  METHOD_PAGE_PATH,
+  METHOD_REQUEST,
+  BT_CORRELATION_ID_HEADER_NAME,
+} from '~src/constants';
+import { detectWebView, getDeviceInfo } from '~src/utils/browser';
+import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
   DeepTransformKeysCase,
   camelCaseToSnakeCase,
@@ -17,16 +18,22 @@ import { logger } from '~src/utils/logging';
 import { NotificationType, notify } from '~src/utils/events';
 import { handleCreateSession } from './handlers/handleCreateSession';
 import { isApiError, processApiError } from './utils/errors';
+import { sdkBaseUrl } from '.';
 export interface Create3dsSessionRequest {
   tokenId?: string;
   tokenIntentId?: string;
+  correlationId?: string;
   /**
    * @deprecated This property is deprecated in favor of `tokenId`
    */
   pan?: string;
   skipMethodRequest?: boolean;
+  /**
+   * @deprecated This property is deprecated and will be removed in the next major version.
+   */
   methodRequestMode?: AcsMode;
   challengeMode?: AcsMode;
+  metadata?: Record<string, unknown>;
 }
 
 export type Create3dsSessionResponse = {
@@ -34,8 +41,14 @@ export type Create3dsSessionResponse = {
   cardBrand?: string;
   method_url?: string;
   method_notification_url?: string;
+  additional_card_brands?: string[];
+  correlationId: string;
+  metadata?: Record<string, unknown>;
 };
 
+/**
+ * @deprecated This function is deprecated and will be removed in the next major version.
+ */
 const submitMethodRequestRedirect = (
   threeDSMethodURL: string,
   threeDSServerTransID: string,
@@ -52,14 +65,19 @@ const submitMethodRequestRedirect = (
     return;
   }
 
-  const form = createForm(METHOD_REQUEST.FORM_NAME, threeDSMethodURL, 'threeDSMethodForm');
-  form.appendChild(createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64));
+  const form = createForm(
+    METHOD_REQUEST.FORM_NAME,
+    threeDSMethodURL,
+    'threeDSMethodForm'
+  );
+  form.appendChild(
+    createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
+  );
 
   document.body.appendChild(form);
   form.submit();
 
-  // check periodically if method window is closed (it closes immediatelly on completion)
-  // TODO: potentially use a middleware page for additional control
+  // check periodically if the method window is closed (it closes immediately on completion)
   const checkClosedInterval = window.setInterval(() => {
     if (newWindow.closed) {
       clearInterval(checkClosedInterval);
@@ -67,7 +85,7 @@ const submitMethodRequestRedirect = (
         isCompleted: true,
         id: threeDSServerTransID,
         type: NotificationType.METHOD,
-      })
+      });
     }
   }, 500);
 };
@@ -92,19 +110,18 @@ const submitMethodRequest = (
     '0'
   );
 
-  const form = createForm(
-    METHOD_REQUEST.FORM_NAME,
-    threeDSMethodURL,
-    iframe.name
-  );
+  iframe.src = `${sdkBaseUrl}/${METHOD_PAGE_PATH}`;
 
-  form.appendChild(
-    createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
-  );
-
-  iframe.appendChild(createElement('html', createElement('body', form)));
-
-  form.submit();
+  iframe.onload = () => {
+    iframe.contentWindow?.postMessage(
+      {
+        type: 'startMethod',
+        threeDSMethodURL,
+        threeDSMethodData: threeDSMethodDataBase64,
+      },
+      '*'
+    );
+  };
 };
 
 const makeSessionRequest = async ({
@@ -114,6 +131,8 @@ const makeSessionRequest = async ({
   skipMethodRequest = false,
   methodRequestMode,
   challengeMode,
+  correlationId,
+  metadata
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
@@ -142,7 +161,9 @@ const makeSessionRequest = async ({
       device: 'browser',
       deviceInfo,
       webChallengeMode: challengeMode,
-    })
+      metadata,
+    }),
+    correlationId
   );
 
   if (!response.ok) {
@@ -152,7 +173,7 @@ const makeSessionRequest = async ({
       json = await response.json();
     } catch {
       const msg = `Failed to parse error response. HTTP Status: ${response.status}`;
-      logger.log.error(msg);
+      await logger.log.error(msg);
       throw new Error(msg);
     }
 
@@ -160,7 +181,7 @@ const makeSessionRequest = async ({
       processApiError(json);
     } else {
       const msg = `An unknown error occurred while creating session. Status: ${response.status}.`;
-      logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
+      await logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
       throw new Error(msg);
     }
   }
@@ -169,7 +190,18 @@ const makeSessionRequest = async ({
     (await response.json()) as Create3dsSessionResponse
   );
 
-  logger.log.info(`3DS session response received with ID ${session.id}`);
+  session.correlationId =
+    response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';
+
+  await logger.log.info(`3DS session response received with ID ${session.id}`);
+
+  await logger.log.info('3ds-device-fingerprint', {
+    sessionId: session.id,
+    ...Object.fromEntries(
+      Object.entries(deviceInfo).map(([k, v]) => [k, String(v)])
+    ),
+    isWebView: String(detectWebView()),
+  });
 
   if (session.methodUrl && !skipMethodRequest) {
     notify({
@@ -203,6 +235,8 @@ export const createSession = async ({
   skipMethodRequest = false,
   methodRequestMode = ACS_MODE.IFRAME,
   challengeMode = ACS_MODE.IFRAME,
+  correlationId = '',
+  metadata = {},
 }: Create3dsSessionRequest) => {
   const session = await makeSessionRequest({
     tokenId,
@@ -210,17 +244,35 @@ export const createSession = async ({
     pan,
     skipMethodRequest,
     methodRequestMode,
-    challengeMode
+    challengeMode,
+    correlationId,
+    metadata,
   }).catch((error) => {
-    return Promise.reject((error as Error).message);
+    // Preserve the full error object (BasisTheory3dsError or other Error types)
+    return Promise.reject(error);
   });
 
   // skip message handling, no method request necessary
   if (!session.methodUrl || skipMethodRequest) {
-    return {
+    const response: {
+      id: string;
+      cardBrand?: string;
+      additionalCardBrands?: string[];
+      metadata?: Record<string, unknown>;
+    } = {
       id: session.id,
-      cardBrand: session.cardBrand,
+      cardBrand: session.cardBrand
     };
+
+    if (session.additionalCardBrands) {
+      response.additionalCardBrands = session.additionalCardBrands;
+    }
+
+    if (session.metadata) {
+      response.metadata = session.metadata;
+    }
+
+    return response;
   }
 
   return await handleCreateSession(session);
