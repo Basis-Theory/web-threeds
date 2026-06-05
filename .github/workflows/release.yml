@@ -63,18 +63,11 @@ jobs:
 
       - uses: AnimMouse/setup-rclone@v1
 
-      - name: Configure AWS Actions Credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::469828239459:role/github-actions-admin-prod
+          role-to-assume: arn:aws:iam::469828239459:role/web-threeds-gh-admin
           aws-region: us-east-2
-
-      - name: Configure AWS Terraform Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::469828239459:role/terraform-admin
-          aws-region: us-east-2
-          role-chaining: true
 
       - name: Start Deploy Message
         uses: Basis-Theory/public-github-actions/deploy-slack-action@master
