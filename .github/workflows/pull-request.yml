@@ -12,7 +12,6 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     permissions:
-      id-token: write
       contents: read
       actions: read
     strategy:
@@ -24,12 +23,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::914054469264:role/web-threeds-gh-admin
-          aws-region: us-east-2
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v1
