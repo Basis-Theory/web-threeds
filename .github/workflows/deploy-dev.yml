@@ -58,8 +58,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
 
       - uses: AnimMouse/setup-rclone@v1
 
@@ -101,12 +99,12 @@ jobs:
           BLOB: true
           CLOUDFLARE: true
           ENVIRONMENT: dev # Used by uploadbundle.sh for R2 bucket naming (dev-3ds)
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_PAT }}
           R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
           R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}
 
   create-pre-release:
     runs-on: ubuntu-latest
+    environment: TAG
     needs:
       - build-release
       - terraform-dev
@@ -114,11 +112,18 @@ jobs:
       matrix:
         node: ["20.x"]
     steps:
+      - name: Mint tag-app token
+        id: tag-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.GH_TAG_APP_ID }}
+          private-key: ${{ secrets.GH_APP_TAG_KEY }}
+
       - name: Version and Tag
         id: version-and-tag
         uses: mathieudutour/github-tag-action@v5.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.tag-token.outputs.token }}
 
       - name: Generate Release Notes
         id: release-notes

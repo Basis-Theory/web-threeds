@@ -56,10 +56,17 @@ jobs:
     needs:
       - terraform-prod
     steps:
+      - name: Mint semantic-release app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.SEMANTIC_RELEASE_APP_ID }}
+          private-key: ${{ secrets.SEMANTIC_RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - uses: AnimMouse/setup-rclone@v1
 
@@ -107,7 +114,6 @@ jobs:
         env:
           CLOUDFLARE: true
           ENVIRONMENT: prod # Used by uploadbundle.sh for R2 bucket naming (prod-3ds)
-          GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
           R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
           R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}
 
