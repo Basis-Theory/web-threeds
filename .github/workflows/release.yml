@@ -12,14 +12,14 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           role-to-assume: arn:aws:iam::469828239459:role/web-threeds-gh-admin
           aws-region: us-east-2
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_wrapper: false
 
@@ -56,27 +56,34 @@ jobs:
     needs:
       - terraform-prod
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+      - name: Mint semantic-release app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
-          token: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
+          app-id: ${{ vars.SEMANTIC_RELEASE_APP_ID }}
+          private-key: ${{ secrets.SEMANTIC_RELEASE_APP_PRIVATE_KEY }}
 
-      - uses: AnimMouse/setup-rclone@v1
+      - name: Checkout Repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: AnimMouse/setup-rclone@26ef2133e09fd383329a1d4c1fbe6a71db1976c9 # v1
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2
         with:
           role-to-assume: arn:aws:iam::469828239459:role/web-threeds-gh-admin
           aws-region: us-east-2
 
       - name: Start Deploy Message
-        uses: Basis-Theory/public-github-actions/deploy-slack-action@master
+        uses: Basis-Theory/public-github-actions/deploy-slack-action@12362db6b1ad6b524d28c47a6489c3e73ecd656a # master
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_RELEASE_CHANNEL_ID }}
 
       - name: Use Node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node }}
           # registry-url is intentionally NOT set - it creates .npmrc that blocks OIDC
@@ -85,7 +92,7 @@ jobs:
         run: npm install -g npm@latest # Requires npm 11.5.1+ for OIDC support
 
       - name: Install Deps (with cache)
-        uses: bahmutov/npm-install@v1
+        uses: bahmutov/npm-install@20216767ca67f0f7b4d095dc5859c5700a6581cb # v1
         with:
           install-command: yarn --immutable --no-progress --ignore-scripts
 
@@ -107,7 +114,6 @@ jobs:
         env:
           CLOUDFLARE: true
           ENVIRONMENT: prod # Used by uploadbundle.sh for R2 bucket naming (prod-3ds)
-          GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_PAT }}
           R2_ACCESS_KEY: ${{secrets.R2_ACCESS_KEY}}
           R2_SECRET_KEY: ${{secrets.R2_SECRET_KEY}}
 
@@ -125,11 +131,11 @@ jobs:
     needs: build-release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Stop Deploy Message
         if: always()
-        uses: Basis-Theory/public-github-actions/deploy-slack-action@master
+        uses: Basis-Theory/public-github-actions/deploy-slack-action@12362db6b1ad6b524d28c47a6489c3e73ecd656a # master
         with:
           slack-api-token: ${{ secrets.SLACK_DUCKBOT_API_KEY }}
           channel: ${{ vars.SLACK_DUCKBOT_RELEASE_CHANNEL_ID }}
