@@ -1,13 +1,9 @@
 type AttributeMap = Record<string, string>;
 
-let disableTelemetry = false;
+let baseAttributes: AttributeMap = {};
 
-export const configureLogger = ({
-  disableTelemetry: disableTelemetryArg,
-}: {
-  disableTelemetry: boolean;
-}) => {
-  disableTelemetry = disableTelemetryArg;
+export const configureLogger = (attributes: AttributeMap) => {
+  baseAttributes = { ...attributes };
 };
 
 export const logger = (() => {
@@ -19,14 +15,11 @@ export const logger = (() => {
     error?: Error,
     attributes: AttributeMap = {}
   ) => {
-    if (disableTelemetry) {
-      return;
-    }
-
     const payload = {
       application: '3ds-web',
       ddsource: '3ds-web',
       service: '3ds-web',
+      ...baseAttributes,
       ...attributes,
       level,
       message:
@@ -42,6 +35,7 @@ export const logger = (() => {
           headers: {
             'Content-Type': 'application/json',
           },
+          keepalive: true,
         }
       );
 

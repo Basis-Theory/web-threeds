@@ -8,7 +8,8 @@ import {
 import { logger } from '~src/utils/logging';
 
 export const handleChallenge = (
-  timeout: number = 300000
+  timeout: number = 300000,
+  sessionId?: string
 ): Promise<{
   id: string;
   isCompleted?: boolean;
@@ -17,57 +18,67 @@ export const handleChallenge = (
   let timeoutId: ReturnType<typeof setTimeout>;
 
   return new Promise((resolve, reject) => {
+    const handleAbandon = () => {
+      window.removeEventListener('pagehide', handleAbandon);
+      logger.log.warn('Challenge abandoned', {
+        event: 'challenge.abandoned',
+        sessionId: sessionId ?? '',
+      });
+    };
+
     const handleMessage = (event: MessageEvent<Notification>) => {
-      if (isNotification(event.data)) {
-        if (event.data.type === NotificationType.ERROR) {
-          logger.log.error(
-            `Error occurred during challenge: ${event?.data?.details}`
-          );
+      if (!isNotification(event.data)) {
+        return;
+      }
 
-          reject(
-            new Error(
-              `An error occurred during challenge: ${event?.data?.details}`
-            )
-          );
+      if (event.data.type === NotificationType.CHALLENGE) {
+        clearTimeout(timeoutId);
+        window.removeEventListener('message', handleMessage);
+        window.removeEventListener('pagehide', handleAbandon);
 
-          removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
-          clearTimeout(timeout);
-        } else if (event.data.type === NotificationType.CHALLENGE) {
-          clearTimeout(timeoutId);
-          window.removeEventListener('message', handleMessage);
+        logger.log.info('Challenge completed', {
+          event: 'challenge.completed',
+          sessionId: event.data.id,
+          authenticationStatus: event.data.authenticationStatus ?? '',
+        });
 
-          const toResponse = (
-            event: MessageEvent<Notification>
-          ): {
-            id: string;
-            isCompleted?: boolean;
-            authenticationStatus?: string;
-          } => ({
-            id: event.data.id,
-            isCompleted: event.data.isCompleted,
-            authenticationStatus: event.data.authenticationStatus,
-          });
+        resolve({
+          id: event.data.id,
+          isCompleted: event.data.isCompleted,
+          authenticationStatus: event.data.authenticationStatus,
+        });
 
-          const response = toResponse(event);
+        removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+      } else if (event.data.type === NotificationType.ERROR) {
+        clearTimeout(timeoutId);
+        window.removeEventListener('message', handleMessage);
+        window.removeEventListener('pagehide', handleAbandon);
 
-          logger.log.info(
-            `${event.data.type} notification received for session: ${response.id}`
-          );
+        logger.log.error(
+          `Error occurred during challenge: ${event?.data?.details}`
+        );
 
-          resolve(response);
-          removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
-        } else if (!event.isTrusted) {
-          // discard untrusted events
-        } else {
-          // ignore other trusted messages
-        }
+        reject(
+          new Error(
+            `An error occurred during challenge: ${event?.data?.details}`
+          )
+        );
+
+        removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
       }
     };
 
     window.addEventListener('message', handleMessage);
+    window.addEventListener('pagehide', handleAbandon);
 
     timeoutId = setTimeout(() => {
       window.removeEventListener('message', handleMessage);
+      window.removeEventListener('pagehide', handleAbandon);
+
+      logger.log.warn('Challenge timed out', {
+        event: 'challenge.timed_out',
+        sessionId: sessionId ?? '',
+      });
 
       reject(
         new Error(

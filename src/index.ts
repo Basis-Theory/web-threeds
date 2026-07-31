@@ -26,18 +26,12 @@ type ConfigOptions = {
    * Allows customization fo sdk base url (for static pages access)
    */
   sdkBaseUrl?: string;
-  /**
-   * Disables telemetry
-   */
-  disableTelemetry?: boolean;
 };
 
 const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     try {
-      configureLogger({
-        disableTelemetry: configOptions?.disableTelemetry ?? false,
-      });
+      configureLogger({ apiKey });
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
       createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
     } catch (error) {

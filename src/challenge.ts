@@ -195,5 +195,10 @@ export const startChallenge = async ({
   // If makeChallengeRequest succeeds, continue with challenge
   // If it fails, the error will propagate automatically
 
-  return handleChallenge(timeout);
+  logger.log.info('Challenge started', {
+    event: 'challenge.started',
+    sessionId,
+  });
+
+  return handleChallenge(timeout, sessionId);
 };

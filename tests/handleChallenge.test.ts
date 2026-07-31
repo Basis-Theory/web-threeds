@@ -12,6 +12,8 @@ jest.mock('~src/utils/logging', () => ({
   logger: {
     log: {
       info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
     },
   },
 }));
@@ -52,8 +54,10 @@ test.each([
 
     expect(result).toEqual(expectedResponse);
     expect(removeIframe).toHaveBeenCalledWith([iframeContainerId]);
-    expect(logger.log.info).toHaveBeenCalledWith(
-      `${notificationType} notification received for session: ${expectedResponse.id}`
-    );
+    expect(logger.log.info).toHaveBeenCalledWith('Challenge completed', {
+      event: 'challenge.completed',
+      sessionId: expectedResponse.id,
+      authenticationStatus: expectedResponse.authenticationStatus,
+    });
   }
 );
