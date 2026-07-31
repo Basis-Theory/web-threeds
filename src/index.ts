@@ -6,7 +6,7 @@ import {
 import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
-import { configureLogger, logger } from '~src/utils/logging';
+import { logger } from '~src/utils/logging';
 import { http } from '~src/utils/http';
 
 export let sdkBaseUrl = SDK_BASE_URL;
@@ -31,7 +31,6 @@ type ConfigOptions = {
 const BasisTheory3ds = (() => {
   return (apiKey: string, configOptions?: ConfigOptions) => {
     try {
-      configureLogger({ apiKey });
       createIframeContainer(METHOD_REQUEST.FRAME_CONTAINER_ID, true);
       createIframeContainer(CHALLENGE_REQUEST.FRAME_CONTAINER_ID);
     } catch (error) {

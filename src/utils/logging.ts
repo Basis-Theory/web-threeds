@@ -1,11 +1,5 @@
 type AttributeMap = Record<string, string>;
 
-let baseAttributes: AttributeMap = {};
-
-export const configureLogger = (attributes: AttributeMap) => {
-  baseAttributes = { ...attributes };
-};
-
 export const logger = (() => {
   const ddTok = 'pubb96b84a13912504f4354f2d794ea4fab';
 
@@ -19,7 +13,6 @@ export const logger = (() => {
       application: '3ds-web',
       ddsource: '3ds-web',
       service: '3ds-web',
-      ...baseAttributes,
       ...attributes,
       level,
       message:
