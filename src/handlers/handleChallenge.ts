@@ -9,7 +9,9 @@ import { logger } from '~src/utils/logging';
 
 export const handleChallenge = (
   timeout: number = 300000,
-  sessionId?: string
+  sessionId?: string,
+  tenantId?: string,
+  tenantType?: string
 ): Promise<{
   id: string;
   isCompleted?: boolean;
@@ -29,6 +31,8 @@ export const handleChallenge = (
       logger.log.warn('Challenge abandoned', {
         event: 'challenge.abandoned',
         sessionId: sessionId ?? '',
+        tenantId: tenantId ?? '',
+        tenantType: tenantType ?? '',
       });
       removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
     };
@@ -51,6 +55,8 @@ export const handleChallenge = (
           event: 'challenge.completed',
           sessionId: event.data.id,
           authenticationStatus: event.data.authenticationStatus ?? '',
+          tenantId: tenantId ?? '',
+          tenantType: tenantType ?? '',
         });
 
         resolve({
@@ -92,6 +98,8 @@ export const handleChallenge = (
       logger.log.warn('Challenge timed out', {
         event: 'challenge.timed_out',
         sessionId: sessionId ?? '',
+        tenantId: tenantId ?? '',
+        tenantType: tenantType ?? '',
       });
 
       reject(

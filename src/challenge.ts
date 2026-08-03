@@ -31,6 +31,8 @@ type ThreeDSChallengeRequest = {
    */
   mode?: AcsMode;
   containerId?: string;
+  tenantId?: string;
+  tenantType?: string;
 };
 interface AcsThreeDSChallengeRequest {
   messageType: 'CReq'; // Must always be set to "CReq"
@@ -182,6 +184,8 @@ export const startChallenge = async ({
   mode = 'iframe',
   timeout = 300000,
   containerId,
+  tenantId,
+  tenantType,
 }: ThreeDSChallengeRequest) => {
   await makeChallengeRequest({
     sessionId,
@@ -198,7 +202,9 @@ export const startChallenge = async ({
   logger.log.info('Challenge started', {
     event: 'challenge.started',
     sessionId,
+    tenantId: tenantId ?? '',
+    tenantType: tenantType ?? '',
   });
 
-  return handleChallenge(timeout, sessionId);
+  return handleChallenge(timeout, sessionId, tenantId, tenantType);
 };

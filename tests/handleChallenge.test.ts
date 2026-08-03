@@ -58,6 +58,8 @@ test.each([
       event: 'challenge.completed',
       sessionId: expectedResponse.id,
       authenticationStatus: expectedResponse.authenticationStatus,
+      tenantId: '',
+      tenantType: '',
     });
   }
 );
