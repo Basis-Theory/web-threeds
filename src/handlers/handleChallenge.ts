@@ -19,22 +19,27 @@ export const handleChallenge = (
 }> => {
   let timeoutId: ReturnType<typeof setTimeout>;
   let settled = false;
+  const controller = new AbortController();
 
   return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      settled = true;
+      clearTimeout(timeoutId);
+      controller.abort();
+      removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+    };
+
     const handleAbandon = () => {
       if (settled) {
         return;
       }
-      settled = true;
-      clearTimeout(timeoutId);
-      window.removeEventListener('pagehide', handleAbandon);
       logger.log.warn('Challenge abandoned', {
         event: 'challenge.abandoned',
         sessionId: sessionId ?? '',
         tenantId: tenantId ?? '',
         tenantType: tenantType ?? '',
       });
-      removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+      cleanup();
     };
 
     const handleMessage = (event: MessageEvent<Notification>) => {
@@ -47,10 +52,6 @@ export const handleChallenge = (
       }
 
       if (event.data.type === NotificationType.CHALLENGE) {
-        settled = true;
-        clearTimeout(timeoutId);
-        window.removeEventListener('message', handleMessage);
-
         logger.log.info('Challenge completed', {
           event: 'challenge.completed',
           sessionId: event.data.id,
@@ -65,12 +66,8 @@ export const handleChallenge = (
           authenticationStatus: event.data.authenticationStatus,
         });
 
-        removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+        cleanup();
       } else if (event.data.type === NotificationType.ERROR) {
-        settled = true;
-        clearTimeout(timeoutId);
-        window.removeEventListener('message', handleMessage);
-
         logger.log.error(
           `Error occurred during challenge: ${event?.data?.details}`
         );
@@ -81,20 +78,21 @@ export const handleChallenge = (
           )
         );
 
-        removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+        cleanup();
       }
     };
 
-    window.addEventListener('message', handleMessage);
-    window.addEventListener('pagehide', handleAbandon);
+    window.addEventListener('message', handleMessage, {
+      signal: controller.signal,
+    });
+    window.addEventListener('pagehide', handleAbandon, {
+      signal: controller.signal,
+    });
 
     timeoutId = setTimeout(() => {
       if (settled) {
         return;
       }
-      settled = true;
-      window.removeEventListener('message', handleMessage);
-
       logger.log.warn('Challenge timed out', {
         event: 'challenge.timed_out',
         sessionId: sessionId ?? '',
@@ -108,7 +106,7 @@ export const handleChallenge = (
         )
       );
 
-      removeIframe([CHALLENGE_REQUEST.IFRAME_NAME]);
+      cleanup();
     }, timeout);
   });
 };
