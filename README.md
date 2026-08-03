@@ -200,3 +200,15 @@ const { startChallenge } = BasisTheory3ds(apiKey, {
   },
 });
 ```
+
+## Telemetry
+
+The SDK emits challenge lifecycle events to Basis Theory's observability backend (Datadog) to monitor 3DS authentication quality — success, challenge, and abandonment rates. Telemetry is always on.
+
+**Events:** `challenge.started`, `challenge.completed`, `challenge.timed_out`, `challenge.abandoned`.
+
+**Fields sent:** the event name, the 3DS `sessionId` (an opaque session identifier — not a credential; reading the session requires the tenant's API key), the resulting `authenticationStatus` (on completion), and, when the integrator provides them, `tenantId` / `tenantType`.
+
+**Never sent:** API keys, card numbers (PAN), or cardholder PII.
+
+Telemetry is retained and access-controlled under Basis Theory's standard log retention and access policies.
