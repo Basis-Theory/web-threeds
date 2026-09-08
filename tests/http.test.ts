@@ -1,9 +1,20 @@
-import { resolveApiBaseUrl } from '~src/utils/http';
+import { API_BASE_URL } from '~src/constants';
+import { resolveApiBaseUrlOverride } from '~src/utils/http';
 
-describe('resolveApiBaseUrl', () => {
-  it('uses the compatibility host when nothing is configured', () => {
-    expect(resolveApiBaseUrl()).toBe('https://api.basistheory.com');
-    expect(resolveApiBaseUrl({})).toBe('https://api.basistheory.com');
+describe('resolveApiBaseUrlOverride', () => {
+  it('returns no override when nothing is configured', () => {
+    // `undefined` is how an unconfigured caller falls through to API_BASE_URL.
+    // Returning the default host here instead would mark every default request
+    // as using a custom URL.
+    expect(resolveApiBaseUrlOverride()).toBeUndefined();
+    expect(resolveApiBaseUrlOverride({})).toBeUndefined();
+    expect(
+      resolveApiBaseUrlOverride({ apiBaseUrl: undefined, region: undefined })
+    ).toBeUndefined();
+  });
+
+  it('leaves the compatibility host as the effective default', () => {
+    expect(API_BASE_URL).toBe('https://api.basistheory.com');
   });
 
   it.each([
@@ -12,12 +23,12 @@ describe('resolveApiBaseUrl', () => {
     ['US', 'https://api.us.basistheory.com'],
     ['Eu', 'https://api.eu.basistheory.com'],
   ])('resolves the %s region', (region, expected) => {
-    expect(resolveApiBaseUrl({ region })).toBe(expected);
+    expect(resolveApiBaseUrlOverride({ region })).toBe(expected);
   });
 
   it('prefers an explicit apiBaseUrl over a region', () => {
     expect(
-      resolveApiBaseUrl({
+      resolveApiBaseUrlOverride({
         apiBaseUrl: 'https://api.flock-dev.com',
         region: 'eu',
       })
@@ -25,9 +36,9 @@ describe('resolveApiBaseUrl', () => {
   });
 
   it.each(['apac', 'unknown', ''])(
-    'falls back to the compatibility host for the unrecognized region %s',
+    'returns no override for the unrecognized region %s',
     (region) => {
-      expect(resolveApiBaseUrl({ region })).toBe('https://api.basistheory.com');
+      expect(resolveApiBaseUrlOverride({ region })).toBeUndefined();
     }
   );
 });

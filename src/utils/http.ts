@@ -6,26 +6,33 @@ import {
 } from '~src/constants';
 
 /**
- * Resolves the API base URL. An explicit `apiBaseUrl` always wins, then a named
- * region, then the compatibility host — so an unconfigured caller is never
- * moved off api.basistheory.com. Region names are matched case-insensitively:
- * a caller writing 'EU' means the EU region, and quietly serving them the
- * compatibility host is the mis-route a region exists to prevent.
+ * Resolves an override for the API base URL: an explicit `apiBaseUrl` first,
+ * then a named region. Returns `undefined` when neither is given, which is how
+ * an unconfigured caller falls through to `API_BASE_URL`
+ * (https://api.basistheory.com) — the same host it has always used.
+ *
+ * Returning `undefined` rather than the default host matters: `_baseUrl` is what
+ * marks a request as using an overridden URL, and always setting it would log
+ * every default request as custom and emit an extra telemetry request.
+ *
+ * Region names are matched case-insensitively: a caller writing 'EU' means the
+ * EU region, and quietly serving them the compatibility host is the mis-route a
+ * region exists to prevent.
  */
-const resolveApiBaseUrl = (options?: {
+const resolveApiBaseUrlOverride = (options?: {
   apiBaseUrl?: string;
   region?: string;
-}): string => {
+}): string | undefined => {
   if (options?.apiBaseUrl) {
     return options.apiBaseUrl;
   }
 
   const region = options?.region?.toLowerCase();
 
-  return (region && REGIONAL_API_BASE_URLS[region]) || API_BASE_URL;
+  return (region && REGIONAL_API_BASE_URLS[region]) || undefined;
 };
 
-export { resolveApiBaseUrl };
+export { resolveApiBaseUrlOverride };
 import { logger } from './logging';
 
 export const http = (() => {

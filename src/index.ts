@@ -7,7 +7,7 @@ import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
 import { configureLogger, logger } from '~src/utils/logging';
-import { http, resolveApiBaseUrl } from '~src/utils/http';
+import { http, resolveApiBaseUrlOverride } from '~src/utils/http';
 
 export let sdkBaseUrl = SDK_BASE_URL;
 
@@ -51,7 +51,7 @@ const BasisTheory3ds = (() => {
 
     sdkBaseUrl = configOptions?.sdkBaseUrl ?? SDK_BASE_URL;
 
-    http.init(apiKey, resolveApiBaseUrl(configOptions));
+    http.init(apiKey, resolveApiBaseUrlOverride(configOptions));
 
     return { createSession, startChallenge };
   };
