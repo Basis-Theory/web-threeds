@@ -24,6 +24,15 @@ export const BT_CORRELATION_ID_HEADER_NAME = 'BT-TRACE-ID';
 
 export const API_BASE_URL = 'https://api.basistheory.com';
 
+/**
+ * Regional API base URLs, selected with the `region` config option. Without a
+ * region the compatibility host above is used, so a region is always opt-in.
+ */
+export const REGIONAL_API_BASE_URLS: Record<string, string> = {
+  eu: 'https://api.eu.basistheory.com',
+  us: 'https://api.us.basistheory.com',
+};
+
 export const SDK_BASE_URL = 'https://3ds.basistheory.com';
 
 export const METHOD_PAGE_PATH = 'pages/method.html';

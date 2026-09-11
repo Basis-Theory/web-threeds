@@ -7,7 +7,7 @@ import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
 import { createIframeContainer } from '~src/utils/dom';
 import { configureLogger, logger } from '~src/utils/logging';
-import { http } from '~src/utils/http';
+import { http, resolveApiBaseUrlOverride } from '~src/utils/http';
 
 export let sdkBaseUrl = SDK_BASE_URL;
 
@@ -19,9 +19,14 @@ declare global {
 
 type ConfigOptions = {
   /**
-   * Allows customization of api base url
+   * Allows customization of api base url. Takes precedence over `region`.
    */
   apiBaseUrl?: string;
+  /**
+   * Selects a regional API host: `us` or `eu`. Optional — without it the
+   * compatibility host `api.basistheory.com` is used.
+   */
+  region?: string;
   /**
    * Allows customization fo sdk base url (for static pages access)
    */
@@ -46,7 +51,7 @@ const BasisTheory3ds = (() => {
 
     sdkBaseUrl = configOptions?.sdkBaseUrl ?? SDK_BASE_URL;
 
-    http.init(apiKey, configOptions?.apiBaseUrl);
+    http.init(apiKey, resolveApiBaseUrlOverride(configOptions));
 
     return { createSession, startChallenge };
   };
