@@ -153,16 +153,20 @@ const makeSessionRequest = async ({
 
   const deviceInfo = getDeviceInfo();
 
+  // metadata keys are the caller's own, so they are sent as given rather than
+  // snake_cased with the rest of the request body.
   const response = await http.client(
     'POST',
     `/sessions`,
-    camelCaseToSnakeCase({
-      [sessionParamKey]: sessionParamValue,
-      device: 'browser',
-      deviceInfo,
-      webChallengeMode: challengeMode,
+    {
+      ...camelCaseToSnakeCase({
+        [sessionParamKey]: sessionParamValue,
+        device: 'browser',
+        deviceInfo,
+        webChallengeMode: challengeMode,
+      }),
       metadata,
-    }),
+    },
     correlationId
   );
 
@@ -186,9 +190,13 @@ const makeSessionRequest = async ({
     }
   }
 
-  const session = snakeCaseToCamelCase<Create3dsSessionResponse>(
-    (await response.json()) as Create3dsSessionResponse
-  );
+  const responseJson = (await response.json()) as Create3dsSessionResponse;
+  const session = snakeCaseToCamelCase<Create3dsSessionResponse>(responseJson);
+
+  // Likewise, return metadata exactly as stored instead of camelCasing its keys.
+  if (responseJson.metadata) {
+    session.metadata = responseJson.metadata;
+  }
 
   session.correlationId =
     response.headers?.get(BT_CORRELATION_ID_HEADER_NAME) || '';

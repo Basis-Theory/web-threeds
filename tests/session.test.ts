@@ -584,4 +584,23 @@ describe('createSession', () => {
       }
     });
   });
+
+  it('should send and return metadata keys without changing their casing', async () => {
+    const metadata = { orderId: 'order-123', customer_ref: 'cust-9' };
+
+    queueMock({
+      id: 'mockSessionId',
+      card_brand: 'visa',
+      metadata,
+    });
+
+    const response = await createSession({ tokenId: 'mockTokenId', metadata });
+
+    await resolvePendingPromises();
+
+    const requestBody = JSON.parse(fetchMockCalls[0][1].body);
+    expect(requestBody.token_id).toBe('mockTokenId');
+    expect(requestBody.metadata).toStrictEqual(metadata);
+    expect(response.metadata).toStrictEqual(metadata);
+  });
 });
