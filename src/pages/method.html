@@ -16,27 +16,46 @@
   </body>
 
   <script>
-    let threeDSMethodURL = '';
-    let threeDSMethodData = '';
+    let methodFrame;
+    let sessionId;
+    let notificationOrigin;
+    let parentOrigin;
 
     window.addEventListener('message', (event) => {
-      if (event.data.type === 'startMethod') {
-        threeDSMethodURL = event.data.threeDSMethodURL;
-        threeDSMethodData = event.data.threeDSMethodData;
+      if (event.data?.type === 'startMethod') {
+        if (event.source !== window.parent || methodFrame) return;
 
-        if (!threeDSMethodURL || !threeDSMethodData) {
+        const { threeDSMethodURL, threeDSMethodData } = event.data;
+        parentOrigin = event.origin;
+
+        try {
+          if (!threeDSMethodURL || !threeDSMethodData) throw new Error();
+          const data = JSON.parse(
+            atob(threeDSMethodData.replace(/-/g, '+').replace(/_/g, '/'))
+          );
+          if (
+            typeof data.threeDSServerTransID !== 'string' ||
+            !data.threeDSServerTransID ||
+            typeof data.threeDSMethodNotificationURL !== 'string'
+          ) {
+            throw new Error();
+          }
+          sessionId = data.threeDSServerTransID;
+          notificationOrigin = new URL(data.threeDSMethodNotificationURL)
+            .origin;
+        } catch {
           window.parent?.postMessage(
             {
               type: 'error',
-              details:
-                'threeDSMethodURL or threeDSMethodData missing in the message',
+              details: 'Invalid 3DS Method request data',
             },
-            '*'
+            parentOrigin
           );
+          return;
         }
 
-        // iframe
         const iframe = document.createElement('iframe');
+        methodFrame = iframe;
         iframe.name = 'acsMethodIframe';
         iframe.id = 'acsSMethodIframe';
         iframe.style.display = 'none';
@@ -46,7 +65,6 @@
         iframe.style.border = '0';
         document.body.appendChild(iframe);
 
-        // method form
         const form = document.createElement('form');
         form.name = 'threeDSMethodForm';
         form.action = threeDSMethodURL;
@@ -60,14 +78,17 @@
         form.appendChild(input);
         document.body.appendChild(form);
 
-        // submit and catch event
         form.submit();
-      } else if (event.data.type === 'method') {
-        // message coming from api notification, post back to parent
-        window.parent?.postMessage(event.data, '*');
+      } else if (
+        methodFrame &&
+        event.source === methodFrame.contentWindow &&
+        event.origin === notificationOrigin &&
+        event.data?.type === 'method' &&
+        event.data.id === sessionId &&
+        typeof event.data.isCompleted === 'boolean'
+      ) {
+        window.parent?.postMessage(event.data, parentOrigin);
       }
-
-      // ignore other messages
     });
   </script>
 </html>

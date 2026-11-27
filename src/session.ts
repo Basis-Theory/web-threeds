@@ -167,12 +167,14 @@ export const createSession = async ({
     return response;
   }
 
-  await startMethod({
-    sessionId: session.id,
-    methodUrl: session.methodUrl,
-    methodNotificationUrl: session.methodNotificationUrl ?? '',
-    methodRequestMode,
-  });
+  if (session.methodNotificationUrl) {
+    await startMethod({
+      sessionId: session.id,
+      methodUrl: session.methodUrl,
+      methodNotificationUrl: session.methodNotificationUrl,
+      methodRequestMode,
+    });
+  }
 
   const response: {
     id: string;

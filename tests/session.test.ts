@@ -116,6 +116,22 @@ describe('createSession', () => {
     expect(res).toStrictEqual(createSessionResponse);
   });
 
+  it('returns the created session when its Method notification URL is absent', async () => {
+    document.body.innerHTML = '';
+    queueMock({
+      id: 'existing-session',
+      cardBrand: 'visa',
+      methodUrl: 'https://issuer.example/method',
+    });
+
+    await expect(createSession({ tokenId: 'mockId' })).resolves.toEqual({
+      id: 'existing-session',
+      cardBrand: 'visa',
+      correlationId: '',
+    });
+    expect(document.getElementById(METHOD_REQUEST.IFRAME_NAME)).toBeNull();
+  });
+
   it("should return session id at 10s if there's no method response", async () => {
     // avoid https://github.com/jsdom/jsdom/issues/1937
     window.HTMLFormElement.prototype.submit = jest.fn();

@@ -55,7 +55,7 @@ test('exposes Method execution for an existing session without creating another 
 
   frame.dispatchEvent(new Event('load'));
 
-  expect(frame.src).toBe('https://3ds.example/pages/method.html');
+  expect(frame.src).toBe('https://3ds.example/pages/method.html?v=2');
   const [message, origin] = postMessage.mock.calls[0];
   expect(origin).toBe('https://3ds.example');
   expect(message.type).toBe('startMethod');
