@@ -4,7 +4,7 @@
 
 The web-threeds package is a JavaScript/TypeScript library designed to simplify the implementation of 3DS (3D Secure) authentication processes in web applications. It provides a streamlined interface for handling both the session creation and challenge steps of the 3DS process.
 
-The web-threeds package exposes two main methods: `createSession` and `startChallenge`. These methods facilitate the initiation and handling of 3DS sessions and challenges.
+The web-threeds package exposes `createSession`, `startMethod`, and `startChallenge` to create sessions, run browser data collection, and handle challenges.
 
 ## Methods
 
@@ -15,6 +15,26 @@ createSession({ pan }: Create3dsSessionRequest): Promise<Create3dsSessionRespons
 ```
 
 This method initiates a 3DS session by making a request to the server with the provided PAN (Primary Account Number). It returns a promise that resolves to a Create3dsSessionResponse object containing session details.
+
+### `startMethod`
+
+```typescript
+startMethod(options: ThreeDSMethodRequest): Promise<ThreeDSMethodResponse>
+```
+
+Runs 3DS Method for a session that already exists. Pass the session ID, Method URL, and Method notification URL returned by the Basis Theory API. Call it after collecting the session's browser device information and before authenticating.
+
+```typescript
+const result = await bt3ds.startMethod({
+  sessionId: session.id,
+  methodUrl: session.method_url,
+  methodNotificationUrl: session.method_notification_url,
+});
+```
+
+The promise resolves with `{ isCompleted: true }` when the matching Method callback arrives, or `{ isCompleted: false }` after 10 seconds without a callback. Continue authentication in either case. If the session has no Method URL, skip this call. The result describes Method completion, not authentication success.
+
+`createSession` already runs this step unless `skipMethodRequest` is set. Do not run it a second time for those sessions.
 
 ### `startChallenge`
 

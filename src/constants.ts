@@ -35,6 +35,6 @@ export const REGIONAL_API_BASE_URLS: Record<string, string> = {
 
 export const SDK_BASE_URL = 'https://3ds.basistheory.com';
 
-export const METHOD_PAGE_PATH = 'pages/method.html';
+export const METHOD_PAGE_PATH = 'pages/method.html?v=2';
 
 export const CHALLENGE_PAGE_PATH = 'pages/challenge.html';

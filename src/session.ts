@@ -1,24 +1,18 @@
 import {
   ACS_MODE,
   AcsMode,
-  METHOD_PAGE_PATH,
-  METHOD_REQUEST,
   BT_CORRELATION_ID_HEADER_NAME,
 } from '~src/constants';
 import { detectWebView, getDeviceInfo } from '~src/utils/browser';
-import { createForm, createIframe, createInput } from '~src/utils/dom';
 import {
   DeepTransformKeysCase,
   camelCaseToSnakeCase,
   snakeCaseToCamelCase,
 } from '~src/utils/casing';
-import { encode } from '~src/utils/encoding';
 import { http } from '~src/utils/http';
 import { logger } from '~src/utils/logging';
-import { NotificationType, notify } from '~src/utils/events';
-import { handleCreateSession } from './handlers/handleCreateSession';
+import { startMethod } from './method';
 import { isApiError, processApiError } from './utils/errors';
-import { sdkBaseUrl } from '.';
 export interface Create3dsSessionRequest {
   tokenId?: string;
   tokenIntentId?: string;
@@ -46,93 +40,13 @@ export type Create3dsSessionResponse = {
   metadata?: Record<string, unknown>;
 };
 
-/**
- * @deprecated This function is deprecated and will be removed in the next major version.
- */
-const submitMethodRequestRedirect = (
-  threeDSMethodURL: string,
-  threeDSServerTransID: string,
-  methodNotificationURL?: string
-): void => {
-  const threeDSMethodDataBase64 = encode({
-    threeDSServerTransID,
-    threeDSMethodNotificationURL: `${methodNotificationURL}?mode=redirect`,
-  });
-
-  const newWindow = window.open('', 'threeDSMethodForm');
-  if (!newWindow) {
-    console.error('Popup blocked or unable to open the window.');
-    return;
-  }
-
-  const form = createForm(
-    METHOD_REQUEST.FORM_NAME,
-    threeDSMethodURL,
-    'threeDSMethodForm'
-  );
-  form.appendChild(
-    createInput(METHOD_REQUEST.INPUT_NAME, threeDSMethodDataBase64)
-  );
-
-  document.body.appendChild(form);
-  form.submit();
-
-  // check periodically if the method window is closed (it closes immediately on completion)
-  const checkClosedInterval = window.setInterval(() => {
-    if (newWindow.closed) {
-      clearInterval(checkClosedInterval);
-      notify({
-        isCompleted: true,
-        id: threeDSServerTransID,
-        type: NotificationType.METHOD,
-      });
-    }
-  }, 500);
-};
-
-const submitMethodRequest = (
-  threeDSMethodURL: string,
-  threeDSServerTransID: string,
-  methodNotificationURL?: string
-): void => {
-  const threeDSMethodDataBase64 = encode({
-    threeDSServerTransID,
-    threeDSMethodNotificationURL: methodNotificationURL,
-  });
-
-  const container = document.getElementById(METHOD_REQUEST.FRAME_CONTAINER_ID);
-
-  const iframe = createIframe(
-    container,
-    METHOD_REQUEST.IFRAME_NAME,
-    METHOD_REQUEST.IFRAME_NAME,
-    '0',
-    '0'
-  );
-
-  iframe.src = `${sdkBaseUrl}/${METHOD_PAGE_PATH}`;
-
-  iframe.onload = () => {
-    iframe.contentWindow?.postMessage(
-      {
-        type: 'startMethod',
-        threeDSMethodURL,
-        threeDSMethodData: threeDSMethodDataBase64,
-      },
-      '*'
-    );
-  };
-};
-
 const makeSessionRequest = async ({
   tokenId,
   tokenIntentId,
   pan,
-  skipMethodRequest = false,
-  methodRequestMode,
   challengeMode,
   correlationId,
-  metadata
+  metadata,
 }: Create3dsSessionRequest): Promise<
   DeepTransformKeysCase<Create3dsSessionResponse, 'camel'>
 > => {
@@ -181,7 +95,9 @@ const makeSessionRequest = async ({
       processApiError(json);
     } else {
       const msg = `An unknown error occurred while creating session. Status: ${response.status}.`;
-      await logger.log.error(`${msg} Response: ${JSON.stringify(json, null, 2)}`);
+      await logger.log.error(
+        `${msg} Response: ${JSON.stringify(json, null, 2)}`
+      );
       throw new Error(msg);
     }
   }
@@ -203,28 +119,6 @@ const makeSessionRequest = async ({
     isWebView: String(detectWebView()),
   });
 
-  if (session.methodUrl && !skipMethodRequest) {
-    notify({
-      isCompleted: false,
-      id: session.id,
-      type: NotificationType.START_METHOD_TIME_OUT,
-    });
-
-    if (methodRequestMode === ACS_MODE.REDIRECT) {
-      submitMethodRequestRedirect(
-        session.methodUrl,
-        session.id,
-        session.methodNotificationUrl
-      );
-    } else {
-      submitMethodRequest(
-        session.methodUrl,
-        session.id,
-        session.methodNotificationUrl
-      );
-    }
-  }
-
   return session;
 };
 
@@ -242,8 +136,6 @@ export const createSession = async ({
     tokenId,
     tokenIntentId,
     pan,
-    skipMethodRequest,
-    methodRequestMode,
     challengeMode,
     correlationId,
     metadata,
@@ -261,7 +153,7 @@ export const createSession = async ({
       metadata?: Record<string, unknown>;
     } = {
       id: session.id,
-      cardBrand: session.cardBrand
+      cardBrand: session.cardBrand,
     };
 
     if (session.additionalCardBrands) {
@@ -275,5 +167,29 @@ export const createSession = async ({
     return response;
   }
 
-  return await handleCreateSession(session);
+  if (session.methodNotificationUrl) {
+    await startMethod({
+      sessionId: session.id,
+      methodUrl: session.methodUrl,
+      methodNotificationUrl: session.methodNotificationUrl,
+      methodRequestMode,
+    });
+  }
+
+  const response: {
+    id: string;
+    cardBrand?: string;
+    correlationId: string;
+    additionalCardBrands?: string[];
+  } = {
+    id: session.id,
+    cardBrand: session.cardBrand,
+    correlationId: session.correlationId,
+  };
+
+  if (session.additionalCardBrands) {
+    response.additionalCardBrands = session.additionalCardBrands;
+  }
+
+  return response;
 };
