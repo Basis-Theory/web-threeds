@@ -26,6 +26,7 @@
     "test:coverage": "jest --coverage --passWithNoTests",
     "test:watch": "jest --watch --passWithNoTests",
     "test": "jest --passWithNoTests",
+    "test:types": "tsc --project tests/types/tsconfig.json",
     "watch": "parcel watch"
   },
   "devDependencies": {

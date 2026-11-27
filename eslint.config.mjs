@@ -36,6 +36,7 @@ export default compat.config({
     '**/*.js',
     'dist',
     '**/*.test.ts',
+    'tests/types',
     'jest.config.js',
   ],
 });

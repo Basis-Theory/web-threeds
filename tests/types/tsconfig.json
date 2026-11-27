@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["dom", "esnext"],
+    "types": []
+  },
+  "include": ["./start-method.ts"]
+}

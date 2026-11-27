@@ -5,6 +5,11 @@ import {
 } from '~src/constants';
 import { createSession } from '~src/session';
 import { startChallenge } from '~src/challenge';
+import {
+  startMethod,
+  ThreeDSMethodRequest,
+  ThreeDSMethodResponse,
+} from './method';
 import { createIframeContainer } from '~src/utils/dom';
 import { configureLogger, logger } from '~src/utils/logging';
 import { http, resolveApiBaseUrlOverride } from '~src/utils/http';
@@ -38,7 +43,16 @@ type ConfigOptions = {
 };
 
 const BasisTheory3ds = (() => {
-  return (apiKey: string, configOptions?: ConfigOptions) => {
+  return (
+    apiKey: string,
+    configOptions?: ConfigOptions
+  ): {
+    createSession: typeof createSession;
+    startMethod: (
+      request: ThreeDSMethodRequest
+    ) => Promise<ThreeDSMethodResponse>;
+    startChallenge: typeof startChallenge;
+  } => {
     try {
       configureLogger({
         disableTelemetry: configOptions?.disableTelemetry ?? false,
@@ -53,10 +67,11 @@ const BasisTheory3ds = (() => {
 
     http.init(apiKey, resolveApiBaseUrlOverride(configOptions));
 
-    return { createSession, startChallenge };
+    return { createSession, startMethod, startChallenge };
   };
 })();
 
 window.BasisTheory3ds = BasisTheory3ds;
 
 export { BasisTheory3ds };
+export type { ThreeDSMethodRequest, ThreeDSMethodResponse } from './method';

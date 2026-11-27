@@ -81,7 +81,8 @@ describe('createSession', () => {
     const versionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
-      methodUrl: 'mockMethodUrl',
+      methodUrl: 'https://issuer.example/method',
+      methodNotificationUrl: 'https://api.example/notify',
     };
 
     const createSessionResponse = {
@@ -95,12 +96,18 @@ describe('createSession', () => {
 
     const response = createSession({ tokenId });
 
-    await resolvePendingPromises();
+    await jest.advanceTimersByTimeAsync(0);
 
     // mock event from method notification
     window.dispatchEvent(
       new MessageEvent('message', {
         data: { isCompleted: true, id: 'mockSessionId', type: 'method' },
+        origin: 'https://3ds.basistheory.com',
+        source: (
+          document.getElementById(
+            METHOD_REQUEST.IFRAME_NAME
+          ) as HTMLIFrameElement
+        ).contentWindow,
       })
     );
 
@@ -120,8 +127,8 @@ describe('createSession', () => {
     const versionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
-      methodUrl: 'mockMethodUrl',
-      notificationUrl: 'http://test.com',
+      methodUrl: 'https://issuer.example/method',
+      methodNotificationUrl: 'https://api.example/notify',
     };
 
     const createSessionResponse = {
@@ -433,7 +440,7 @@ describe('createSession', () => {
     const versionResponse = {
       id: 'mockSessionId',
       cardBrand: 'visa',
-      methodUrl: 'mockMethodUrl',
+      methodUrl: 'https://issuer.example/method',
       methodNotificationUrl: 'http://test.com/notify',
     };
     const createSessionResponse = {
@@ -451,10 +458,11 @@ describe('createSession', () => {
       methodRequestMode: ACS_MODE.REDIRECT,
     });
 
-    await resolvePendingPromises();
+    await jest.advanceTimersByTimeAsync(0);
 
     expect(mockWindowOpen).toHaveBeenCalledWith('', 'threeDSMethodForm');
     (mockPopup.closed as boolean) = true; // mock window closing
+    await jest.advanceTimersByTimeAsync(500);
 
     const session = await sessionPromise;
     expect(session).toStrictEqual(createSessionResponse);
@@ -471,7 +479,8 @@ describe('createSession', () => {
       id: 'mockSessionId',
       cardBrand: 'visa',
       correlationId: '',
-      methodUrl: 'mockMethodUrl',
+      methodUrl: 'https://issuer.example/method',
+      methodNotificationUrl: 'https://api.example/notify',
     };
 
     const createSessionResponse = {

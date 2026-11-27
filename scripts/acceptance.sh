@@ -6,6 +6,7 @@ current_directory="$PWD"
 cd $(dirname $0)/..
 
 yarn lint
+yarn test:types
 
 # unit
 yarn test --coverage
